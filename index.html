@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Digital Apiary - AI-Powered Support for Egyptian Beekeepers</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Decorative honeycomb background -->
+        <div class="honeycomb-bg"></div>
+
+        <!-- Header -->
+        <header class="header">
+            <div class="header-content">
+                <div class="header-left">
+                    <h1 class="header-title" id="headerTitle">Digital Apiary</h1>
+                    <p class="header-subtitle" id="headerSubtitle">AI-Powered Support for Egyptian Beekeepers</p>
+                    <p class="header-tagline" id="headerTagline">TIGARA Project - UNIDO & EU Partnership</p>
+                </div>
+                <button class="language-toggle" id="languageToggle">
+                    <svg class="icon-globe" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <line x1="2" y1="12" x2="22" y2="12"></line>
+                        <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
+                    </svg>
+                    <span class="language-text" id="languageText">عربي</span>
+                </button>
+            </div>
+
+            <!-- Navigation -->
+            <nav class="nav">
+                <div class="nav-desktop">
+                    <button class="nav-btn active" data-view="home" id="navHome">Home</button>
+                    <button class="nav-btn" data-view="analyze" id="navAnalyze">Hive Analysis</button>
+                    <button class="nav-btn" data-view="knowledge" id="navKnowledge">Knowledge Base</button>
+                    <button class="nav-btn" data-view="profile" id="navProfile">Profile</button>
+                </div>
+
+                <!-- Mobile menu -->
+                <div class="nav-mobile">
+                    <span class="nav-mobile-current" id="navMobileCurrent">Home</span>
+                    <button class="mobile-menu-btn" id="mobileMenuBtn">
+                        <svg class="icon-menu" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="3" y1="6" x2="21" y2="6"></line>
+                            <line x1="3" y1="12" x2="21" y2="12"></line>
+                            <line x1="3" y1="18" x2="21" y2="18"></line>
+                        </svg>
+                    </button>
+                </div>
+            </nav>
+
+            <!-- Mobile menu dropdown -->
+            <div class="mobile-menu" id="mobileMenu">
+                <button class="mobile-menu-item" data-view="home">Home</button>
+                <button class="mobile-menu-item" data-view="analyze">Hive Analysis</button>
+                <button class="mobile-menu-item" data-view="knowledge">Knowledge Base</button>
+                <button class="mobile-menu-item" data-view="profile">Profile</button>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Home View -->
+            <div class="view" id="viewHome">
+                <div class="home-container">
+                    <div class="home-hero">
+                        <div class="home-icon-wrapper">
+                            <div class="home-icon">
+                                <svg class="icon-sparkles" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"></path>
+                                </svg>
+                            </div>
+                        </div>
+                        <h2 class="home-title" id="homeWelcome">Welcome to Digital Apiary</h2>
+                        <p class="home-description" id="homeDescription">Your intelligent companion for modern beekeeping. Upload hive photos for AI-assisted health analysis, access expert knowledge, and connect with best practices.</p>
+                    </div>
+
+                    <div class="features-grid" id="featuresGrid">
+                        <!-- Features will be populated by JavaScript -->
+                    </div>
+
+                    <div class="home-cta">
+                        <button class="btn-primary" id="homeCtaBtn">
+                            <span id="homeCtaText">Get Started</span>
+                            <svg class="icon-chevron-right" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polyline points="9 18 15 12 9 6"></polyline>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Analysis View -->
+            <div class="view hidden" id="viewAnalyze">
+                <div class="analysis-container">
+                    <div class="analysis-header">
+                        <h2 class="analysis-title" id="analysisTitle">Hive Health Analysis</h2>
+                        <p class="analysis-disclaimer" id="analysisDisclaimer">⚠️ Advisory outputs are for guidance only and not a substitute for professional diagnosis</p>
+                    </div>
+
+                    <!-- Upload Area -->
+                    <div class="upload-area" id="uploadArea">
+                        <input type="file" accept="image/*" id="imageUpload" class="file-input">
+                        <label for="imageUpload" class="upload-label">
+                            <svg class="icon-upload" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                <polyline points="17 8 12 3 7 8"></polyline>
+                                <line x1="12" y1="3" x2="12" y2="15"></line>
+                            </svg>
+                            <p class="upload-title" id="uploadTitle">Upload Hive Photo</p>
+                            <p class="upload-prompt" id="uploadPrompt">Take or upload a clear photo of your hive or brood frame</p>
+                        </label>
+                    </div>
+
+                    <!-- Image Preview -->
+                    <div class="image-preview hidden" id="imagePreview">
+                        <div class="preview-wrapper">
+                            <img id="previewImage" src="" alt="Uploaded hive" class="preview-img">
+                        </div>
+                        <div class="preview-actions">
+                            <button class="btn-primary" id="analyzeBtn">
+                                <span id="analyzeBtnText">Analyze Hive</span>
+                            </button>
+                            <button class="btn-secondary" id="cancelBtn">
+                                <span id="cancelBtnText">Cancel</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Analyzing State -->
+                    <div class="analyzing-state hidden" id="analyzingState">
+                        <svg class="icon-loader" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="12" y1="2" x2="12" y2="6"></line>
+                            <line x1="12" y1="18" x2="12" y2="22"></line>
+                            <line x1="4.93" y1="4.93" x2="7.76" y2="7.76"></line>
+                            <line x1="16.24" y1="16.24" x2="19.07" y2="19.07"></line>
+                            <line x1="2" y1="12" x2="6" y2="12"></line>
+                            <line x1="18" y1="12" x2="22" y2="12"></line>
+                            <line x1="4.93" y1="19.07" x2="7.76" y2="16.24"></line>
+                            <line x1="16.24" y1="7.76" x2="19.07" y2="4.93"></line>
+                        </svg>
+                        <p class="analyzing-text" id="analyzingText">Analyzing your hive...</p>
+                    </div>
+
+                    <!-- Analysis Result -->
+                    <div class="analysis-result hidden" id="analysisResult">
+                        <div class="result-card" id="resultCard">
+                            <div class="result-header">
+                                <svg class="result-icon" id="resultIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <!-- Icon will be set dynamically -->
+                                </svg>
+                                <div>
+                                    <h3 class="result-title" id="resultTitle">Analysis Result</h3>
+                                    <p class="result-timestamp" id="resultTimestamp"></p>
+                                </div>
+                            </div>
+                            <div class="result-content">
+                                <div class="result-text" id="resultText"></div>
+                            </div>
+                        </div>
+                        <div class="result-actions">
+                            <button class="btn-primary" id="newAnalysisBtn">
+                                <span id="newAnalysisBtnText">New Analysis</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Knowledge View -->
+            <div class="view hidden" id="viewKnowledge">
+                <div class="knowledge-container">
+                    <div class="knowledge-header">
+                        <h2 class="knowledge-title" id="knowledgeTitle">Knowledge Library</h2>
+                    </div>
+                    <div class="knowledge-grid" id="knowledgeGrid">
+                        <!-- Categories will be populated by JavaScript -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Profile View -->
+            <div class="view hidden" id="viewProfile">
+                <div class="profile-container">
+                    <div class="profile-header">
+                        <h2 class="profile-title" id="profileTitle">Beekeeper Profile</h2>
+                    </div>
+                    <div class="profile-form">
+                        <div class="form-group">
+                            <label class="form-label" id="profileRoleLabel">Role</label>
+                            <select class="form-select" id="profileRole">
+                                <option value="small" id="roleSmall">Small-scale Beekeeper</option>
+                                <option value="medium" id="roleMedium">Medium-scale Beekeeper</option>
+                                <option value="coop" id="roleCoop">Cooperative Member</option>
+                                <option value="extension" id="roleExtension">Extension Agent</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" id="profileLocationLabel">Governorate</label>
+                            <select class="form-select" id="profileLocation">
+                                <option>Cairo</option>
+                                <option>Alexandria</option>
+                                <option>Giza</option>
+                                <option>Qalyubia</option>
+                                <option>Dakahlia</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" id="profileHivesLabel">Number of Hives</label>
+                            <input type="number" class="form-input" id="profileHives" placeholder="10">
+                        </div>
+                        <button class="btn-primary btn-full" id="saveProfileBtn">
+                            <span id="saveProfileBtnText">Save Profile</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <div class="footer-content">
+                <p class="footer-text" id="footerText">© 2025 UNIDO - United Nations Industrial Development Organization | TIGARA Project funded by the EU</p>
+            </div>
+        </footer>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
