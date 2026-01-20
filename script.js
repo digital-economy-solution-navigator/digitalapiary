@@ -10,7 +10,48 @@ const state = {
     audioAnalysisResult: null,
     userProfile: null,
     mobileMenuOpen: false,
-    currentTab: 'brood'
+    currentTab: 'brood',
+    createMenuOpen: false,
+    wizardStep: 1,
+    wizardData: {
+        apiary: {
+            name: '',
+            color: '#f59e0b',
+            hasRoof: false
+        },
+        location: {
+            address: '',
+            country: '',
+            city: '',
+            street: '',
+            number: '',
+            postalCode: '',
+            latitude: null,
+            longitude: null
+        },
+        hiveConfig: {
+            color: '#f59e0b',
+            framesPerLayer: 10,
+            hiveType: '',
+            layers: ['brood', 'honey', 'queen-excluder', 'feeding-box'],
+            dimensions: {
+                broodWidth: 0,
+                broodHeight: 0,
+                broodDepth: 0,
+                frameWidth: 0,
+                frameHeight: 0
+            }
+        },
+        numberOfHives: {
+            count: 1,
+            prefix: 'Hive',
+            startNumber: 1
+        }
+    },
+    apiaries: [],
+    hives: [],
+    inspections: [],
+    collaborationGroups: []
 };
 
 // Data Sources
@@ -189,6 +230,54 @@ const translations = {
                 coop: "Cooperative Member"
             },
             save: "Save Profile"
+        },
+        create: {
+            menu: "Create",
+            newApiary: "New Apiary",
+            newHive: "New Hive",
+            newInspection: "New Inspection",
+            newGroup: "New Collaboration Group"
+        },
+        wizard: {
+            title: "New Apiary Wizard",
+            step1: "Apiary",
+            step2: "Location",
+            step3: "Hive Config",
+            step4: "Number of Hives",
+            step1Title: "Apiary Settings",
+            step2Title: "Location Details (Optional)",
+            step3Title: "Hive Configuration Template",
+            step4Title: "Number of Hives",
+            apiaryName: "Apiary Name",
+            apiaryColor: "Apiary Color",
+            apiaryRoof: "Does the apiary have a roof?",
+            locationAddress: "Address",
+            locationCountry: "Country",
+            locationCity: "City",
+            locationStreet: "Street",
+            locationNumber: "No.",
+            locationPostalCode: "Postal Code",
+            locationLatitude: "Latitude",
+            locationLongitude: "Longitude",
+            hiveColor: "Hive Color",
+            framesPerLayer: "Frames per Layer",
+            hiveType: "Hive Type",
+            hiveLayers: "Hive Layers (Drag to reorder)",
+            dimensions: "Brood Box and Frame Dimensions (cm)",
+            broodWidth: "Brood Box Width",
+            broodHeight: "Brood Box Height",
+            broodDepth: "Brood Box Depth",
+            frameWidth: "Frame Width",
+            frameHeight: "Frame Height",
+            numberOfHives: "Number of Hives",
+            hiveNamePrefix: "Hive Name Prefix",
+            hiveStartNumber: "Start Number",
+            preview: "Preview",
+            back: "Back",
+            next: "Next",
+            save: "Save",
+            close: "Close",
+            apiaryNameHint: "3-30 characters, must be unique"
         }
     },
     ar: {
@@ -349,6 +438,54 @@ const translations = {
                 coop: "عضو تعاوني"
             },
             save: "حفظ الملف"
+        },
+        create: {
+            menu: "إنشاء",
+            newApiary: "منحل جديد",
+            newHive: "خلية جديدة",
+            newInspection: "فحص جديد",
+            newGroup: "مجموعة تعاون جديدة"
+        },
+        wizard: {
+            title: "معالج المنحل الجديد",
+            step1: "المنحل",
+            step2: "الموقع",
+            step3: "إعدادات الخلية",
+            step4: "عدد الخلايا",
+            step1Title: "إعدادات المنحل",
+            step2Title: "تفاصيل الموقع (اختياري)",
+            step3Title: "قالب إعدادات الخلية",
+            step4Title: "عدد الخلايا",
+            apiaryName: "اسم المنحل",
+            apiaryColor: "لون المنحل",
+            apiaryRoof: "هل للمنحل سقف؟",
+            locationAddress: "العنوان",
+            locationCountry: "الدولة",
+            locationCity: "المدينة",
+            locationStreet: "الشارع",
+            locationNumber: "الرقم",
+            locationPostalCode: "الرمز البريدي",
+            locationLatitude: "خط العرض",
+            locationLongitude: "خط الطول",
+            hiveColor: "لون الخلية",
+            framesPerLayer: "الإطارات لكل طبقة",
+            hiveType: "نوع الخلية",
+            hiveLayers: "طبقات الخلية (اسحب لإعادة الترتيب)",
+            dimensions: "أبعاد صندوق الحضنة والإطار (سم)",
+            broodWidth: "عرض صندوق الحضنة",
+            broodHeight: "ارتفاع صندوق الحضنة",
+            broodDepth: "عمق صندوق الحضنة",
+            frameWidth: "عرض الإطار",
+            frameHeight: "ارتفاع الإطار",
+            numberOfHives: "عدد الخلايا",
+            hiveNamePrefix: "بادئة اسم الخلية",
+            hiveStartNumber: "الرقم الأول",
+            preview: "معاينة",
+            back: "رجوع",
+            next: "التالي",
+            save: "حفظ",
+            close: "إغلاق",
+            apiaryNameHint: "3-30 حرفاً، يجب أن يكون فريداً"
         }
     }
 };
@@ -492,7 +629,52 @@ const elements = {
     saveProfileBtnText: document.getElementById('saveProfileBtnText'),
     
     // Footer
-    footerText: document.getElementById('footerText')
+    footerText: document.getElementById('footerText'),
+    
+    // Create Menu
+    createMenuBtn: document.getElementById('createMenuBtn'),
+    createMenuDropdown: document.getElementById('createMenuDropdown'),
+    createMenuText: document.getElementById('createMenuText'),
+    createNewApiary: document.getElementById('createNewApiary'),
+    createNewHive: document.getElementById('createNewHive'),
+    createNewInspection: document.getElementById('createNewInspection'),
+    createNewGroup: document.getElementById('createNewGroup'),
+    
+    // Wizard
+    viewApiaryWizard: document.getElementById('viewApiaryWizard'),
+    wizardClose: document.getElementById('wizardClose'),
+    wizardTitle: document.getElementById('wizardTitle'),
+    wizardBackBtn: document.getElementById('wizardBackBtn'),
+    wizardNextBtn: document.getElementById('wizardNextBtn'),
+    wizardSaveBtn: document.getElementById('wizardSaveBtn'),
+    wizardStep1: document.getElementById('wizardStep1'),
+    wizardStep2: document.getElementById('wizardStep2'),
+    wizardStep3: document.getElementById('wizardStep3'),
+    wizardStep4: document.getElementById('wizardStep4'),
+    apiaryName: document.getElementById('apiaryName'),
+    apiaryColor: document.getElementById('apiaryColor'),
+    apiaryHasRoof: document.getElementById('apiaryHasRoof'),
+    locationAddress: document.getElementById('locationAddress'),
+    locationCountry: document.getElementById('locationCountry'),
+    locationCity: document.getElementById('locationCity'),
+    locationStreet: document.getElementById('locationStreet'),
+    locationNumber: document.getElementById('locationNumber'),
+    locationPostalCode: document.getElementById('locationPostalCode'),
+    locationLatitude: document.getElementById('locationLatitude'),
+    locationLongitude: document.getElementById('locationLongitude'),
+    hiveColor: document.getElementById('hiveColor'),
+    framesPerLayer: document.getElementById('framesPerLayer'),
+    hiveType: document.getElementById('hiveType'),
+    layersContainer: document.getElementById('layersContainer'),
+    broodWidth: document.getElementById('broodWidth'),
+    broodHeight: document.getElementById('broodHeight'),
+    broodDepth: document.getElementById('broodDepth'),
+    frameWidth: document.getElementById('frameWidth'),
+    frameHeight: document.getElementById('frameHeight'),
+    numberOfHives: document.getElementById('numberOfHives'),
+    hiveNamePrefix: document.getElementById('hiveNamePrefix'),
+    hiveStartNumber: document.getElementById('hiveStartNumber'),
+    apiaryPreview: document.getElementById('apiaryPreview')
 };
 
 // Icon SVGs
@@ -758,7 +940,11 @@ function switchView(view) {
     document.querySelectorAll('.view').forEach(v => v.classList.add('hidden'));
     
     // Show selected view
-    const viewElement = document.getElementById(`view${view.charAt(0).toUpperCase() + view.slice(1)}`);
+    let viewId = `view${view.charAt(0).toUpperCase() + view.slice(1)}`;
+    if (view === 'apiaryWizard') {
+        viewId = 'viewApiaryWizard';
+    }
+    const viewElement = document.getElementById(viewId);
     if (viewElement) {
         viewElement.classList.remove('hidden');
     }
@@ -785,6 +971,12 @@ function switchView(view) {
     else if (view === 'research') renderResearch();
     else if (view === 'knowledge') renderKnowledge();
     else if (view === 'profile') renderProfile();
+    else if (view === 'apiaryWizard') {
+        // Wizard view is handled by renderWizard()
+        if (elements.viewApiaryWizard) {
+            renderWizard();
+        }
+    }
 }
 
 // Toggle Language
@@ -1032,6 +1224,782 @@ elements.saveProfileBtn.addEventListener('click', () => {
     alert(t.profile.save + ' - ' + (state.language === 'ar' ? 'تم الحفظ' : 'Saved'));
 });
 
+// Load data from localStorage
+function loadData() {
+    const savedApiaries = localStorage.getItem('apiaries');
+    const savedHives = localStorage.getItem('hives');
+    const savedInspections = localStorage.getItem('inspections');
+    const savedGroups = localStorage.getItem('collaborationGroups');
+    
+    if (savedApiaries) state.apiaries = JSON.parse(savedApiaries);
+    if (savedHives) state.hives = JSON.parse(savedHives);
+    if (savedInspections) state.inspections = JSON.parse(savedInspections);
+    if (savedGroups) state.collaborationGroups = JSON.parse(savedGroups);
+}
+
+// Save data to localStorage
+function saveData() {
+    localStorage.setItem('apiaries', JSON.stringify(state.apiaries));
+    localStorage.setItem('hives', JSON.stringify(state.hives));
+    localStorage.setItem('inspections', JSON.stringify(state.inspections));
+    localStorage.setItem('collaborationGroups', JSON.stringify(state.collaborationGroups));
+}
+
+// Toggle Create Menu
+function toggleCreateMenu() {
+    state.createMenuOpen = !state.createMenuOpen;
+    if (state.createMenuOpen) {
+        elements.createMenuDropdown.classList.remove('hidden');
+    } else {
+        elements.createMenuDropdown.classList.add('hidden');
+    }
+}
+
+// Close Create Menu when clicking outside
+document.addEventListener('click', (e) => {
+    if (state.createMenuOpen && 
+        !elements.createMenuBtn.contains(e.target) && 
+        !elements.createMenuDropdown.contains(e.target)) {
+        toggleCreateMenu();
+    }
+});
+
+// Handle Create Menu Actions
+function handleCreateAction(action) {
+    toggleCreateMenu();
+    
+    switch(action) {
+        case 'new-apiary':
+            openApiaryWizard();
+            break;
+        case 'new-hive':
+            handleNewHive();
+            break;
+        case 'new-inspection':
+            handleNewInspection();
+            break;
+        case 'new-collaboration-group':
+            handleNewCollaborationGroup();
+            break;
+    }
+}
+
+// Open Apiary Wizard
+function openApiaryWizard() {
+    state.wizardStep = 1;
+    state.wizardData = {
+        apiary: {
+            name: `Apiary ${state.apiaries.length + 1}`,
+            color: '#f59e0b',
+            hasRoof: false
+        },
+        location: {
+            address: '',
+            country: '',
+            city: '',
+            street: '',
+            number: '',
+            postalCode: '',
+            latitude: null,
+            longitude: null
+        },
+        hiveConfig: {
+            color: '#f59e0b',
+            framesPerLayer: 10,
+            hiveType: '',
+            layers: ['brood', 'honey', 'queen-excluder', 'feeding-box'],
+            dimensions: {
+                broodWidth: 0,
+                broodHeight: 0,
+                broodDepth: 0,
+                frameWidth: 0,
+                frameHeight: 0
+            }
+        },
+        numberOfHives: {
+            count: 1,
+            prefix: 'Hive',
+            startNumber: 1
+        }
+    };
+    
+    // Load draft from localStorage if exists
+    const draft = localStorage.getItem('apiaryWizardDraft');
+    if (draft) {
+        try {
+            state.wizardData = JSON.parse(draft);
+        } catch (e) {
+            console.error('Failed to load draft:', e);
+        }
+    }
+    
+    renderWizard();
+    switchView('apiaryWizard');
+}
+
+// Close Apiary Wizard
+function closeApiaryWizard() {
+    // Save draft
+    localStorage.setItem('apiaryWizardDraft', JSON.stringify(state.wizardData));
+    switchView('home');
+}
+
+// Render Wizard
+function renderWizard() {
+    const t = getTranslation();
+    
+    // Update translations
+    elements.wizardTitle.textContent = t.wizard.title;
+    const step1Label = document.getElementById('step1Label');
+    const step2Label = document.getElementById('step2Label');
+    const step3Label = document.getElementById('step3Label');
+    const step4Label = document.getElementById('step4Label');
+    if (step1Label) step1Label.textContent = t.wizard.step1;
+    if (step2Label) step2Label.textContent = t.wizard.step2;
+    if (step3Label) step3Label.textContent = t.wizard.step3;
+    if (step4Label) step4Label.textContent = t.wizard.step4;
+    
+    const step1Title = document.getElementById('step1Title');
+    const step2Title = document.getElementById('step2Title');
+    const step3Title = document.getElementById('step3Title');
+    const step4Title = document.getElementById('step4Title');
+    if (step1Title) step1Title.textContent = t.wizard.step1Title;
+    if (step2Title) step2Title.textContent = t.wizard.step2Title;
+    if (step3Title) step3Title.textContent = t.wizard.step3Title;
+    if (step4Title) step4Title.textContent = t.wizard.step4Title;
+    
+    if (elements.wizardBackBtn) {
+        const backSpan = elements.wizardBackBtn.querySelector('span');
+        if (backSpan) backSpan.textContent = t.wizard.back;
+    }
+    if (elements.wizardNextBtn) {
+        const nextSpan = elements.wizardNextBtn.querySelector('span');
+        if (nextSpan) nextSpan.textContent = t.wizard.next;
+    }
+    if (elements.wizardSaveBtn) {
+        const saveSpan = elements.wizardSaveBtn.querySelector('span');
+        if (saveSpan) saveSpan.textContent = t.wizard.save;
+    }
+    
+    // Update form labels
+    const apiaryNameLabel = document.getElementById('apiaryNameLabel');
+    const apiaryNameHint = document.getElementById('apiaryNameHint');
+    const apiaryRoofLabel = document.getElementById('apiaryRoofLabel');
+    const hiveLayersLabel = document.getElementById('hiveLayersLabel');
+    const dimensionsLabel = document.getElementById('dimensionsLabel');
+    const previewLabel = document.getElementById('previewLabel');
+    
+    if (apiaryNameLabel) apiaryNameLabel.textContent = t.wizard.apiaryName;
+    if (apiaryNameHint) apiaryNameHint.textContent = t.wizard.apiaryNameHint;
+    if (apiaryRoofLabel) apiaryRoofLabel.textContent = t.wizard.apiaryRoof;
+    if (hiveLayersLabel) hiveLayersLabel.textContent = t.wizard.hiveLayers;
+    if (dimensionsLabel) dimensionsLabel.textContent = t.wizard.dimensions;
+    if (previewLabel) previewLabel.textContent = t.wizard.preview;
+    
+    // Update layer names if on step 3
+    if (state.wizardStep === 3 && elements.layersContainer) {
+        renderLayers();
+    }
+    
+    // Update progress steps
+    document.querySelectorAll('.progress-step').forEach((step, idx) => {
+        const stepNum = idx + 1;
+        step.classList.remove('active', 'completed');
+        if (stepNum < state.wizardStep) {
+            step.classList.add('completed');
+        } else if (stepNum === state.wizardStep) {
+            step.classList.add('active');
+        }
+    });
+    
+    // Show/hide steps
+    elements.wizardStep1.classList.toggle('hidden', state.wizardStep !== 1);
+    elements.wizardStep2.classList.toggle('hidden', state.wizardStep !== 2);
+    elements.wizardStep3.classList.toggle('hidden', state.wizardStep !== 3);
+    elements.wizardStep4.classList.toggle('hidden', state.wizardStep !== 4);
+    
+    // Show/hide navigation buttons
+    elements.wizardBackBtn.classList.toggle('hidden', state.wizardStep === 1);
+    elements.wizardNextBtn.classList.toggle('hidden', state.wizardStep === 4);
+    elements.wizardSaveBtn.classList.toggle('hidden', state.wizardStep !== 4);
+    
+    // Populate form fields
+    populateWizardForm();
+    
+    // Update preview
+    if (state.wizardStep === 4) {
+        updatePreview();
+    }
+}
+
+// Populate Wizard Form
+function populateWizardForm() {
+    const data = state.wizardData;
+    
+    if (state.wizardStep === 1) {
+        elements.apiaryName.value = data.apiary.name || '';
+        elements.apiaryColor.value = data.apiary.color || '#f59e0b';
+        elements.apiaryHasRoof.checked = data.apiary.hasRoof || false;
+    } else if (state.wizardStep === 2) {
+        elements.locationAddress.value = data.location.address || '';
+        elements.locationCountry.value = data.location.country || '';
+        elements.locationCity.value = data.location.city || '';
+        elements.locationStreet.value = data.location.street || '';
+        elements.locationNumber.value = data.location.number || '';
+        elements.locationPostalCode.value = data.location.postalCode || '';
+        elements.locationLatitude.value = data.location.latitude || '';
+        elements.locationLongitude.value = data.location.longitude || '';
+    } else if (state.wizardStep === 3) {
+        elements.hiveColor.value = data.hiveConfig.color || '#f59e0b';
+        elements.framesPerLayer.value = data.hiveConfig.framesPerLayer || 10;
+        elements.hiveType.value = data.hiveConfig.hiveType || '';
+        elements.broodWidth.value = data.hiveConfig.dimensions.broodWidth || 0;
+        elements.broodHeight.value = data.hiveConfig.dimensions.broodHeight || 0;
+        elements.broodDepth.value = data.hiveConfig.dimensions.broodDepth || 0;
+        elements.frameWidth.value = data.hiveConfig.dimensions.frameWidth || 0;
+        elements.frameHeight.value = data.hiveConfig.dimensions.frameHeight || 0;
+        
+        // Render layers
+        renderLayers();
+    } else if (state.wizardStep === 4) {
+        elements.numberOfHives.value = data.numberOfHives.count || 1;
+        elements.hiveNamePrefix.value = data.numberOfHives.prefix || 'Hive';
+        elements.hiveStartNumber.value = data.numberOfHives.startNumber || 1;
+    }
+}
+
+// Render Layers
+function renderLayers() {
+    const layers = state.wizardData.hiveConfig.layers;
+    const t = getTranslation();
+    const layerNames = {
+        'brood': state.language === 'ar' ? 'طبقة الحضنة' : 'Brood Layer',
+        'honey': state.language === 'ar' ? 'طبقة العسل' : 'Honey Layer',
+        'queen-excluder': state.language === 'ar' ? 'حاجز الملكة' : 'Queen Excluder',
+        'feeding-box': state.language === 'ar' ? 'صندوق التغذية' : 'Feeding Box'
+    };
+    
+    elements.layersContainer.innerHTML = layers.map(layer => `
+        <div class="layer-item" data-layer="${layer}">
+            <svg class="drag-handle" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="9" cy="12" r="1"></circle>
+                <circle cx="15" cy="12" r="1"></circle>
+                <circle cx="9" cy="5" r="1"></circle>
+                <circle cx="15" cy="5" r="1"></circle>
+                <circle cx="9" cy="19" r="1"></circle>
+                <circle cx="15" cy="19" r="1"></circle>
+            </svg>
+            <span class="layer-name">${layerNames[layer] || layer}</span>
+        </div>
+    `).join('');
+    
+    // Make layers draggable
+    makeLayersDraggable();
+}
+
+// Make Layers Draggable
+function makeLayersDraggable() {
+    const layerItems = elements.layersContainer.querySelectorAll('.layer-item');
+    let draggedElement = null;
+    
+    layerItems.forEach(item => {
+        item.draggable = true;
+        
+        item.addEventListener('dragstart', (e) => {
+            draggedElement = item;
+            item.classList.add('dragging');
+            e.dataTransfer.effectAllowed = 'move';
+        });
+        
+        item.addEventListener('dragend', () => {
+            item.classList.remove('dragging');
+            draggedElement = null;
+        });
+        
+        item.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            e.dataTransfer.dropEffect = 'move';
+            
+            const afterElement = getDragAfterElement(elements.layersContainer, e.clientY);
+            if (afterElement == null) {
+                elements.layersContainer.appendChild(draggedElement);
+            } else {
+                elements.layersContainer.insertBefore(draggedElement, afterElement);
+            }
+        });
+    });
+}
+
+// Get Drag After Element
+function getDragAfterElement(container, y) {
+    const draggableElements = [...container.querySelectorAll('.layer-item:not(.dragging)')];
+    
+    return draggableElements.reduce((closest, child) => {
+        const box = child.getBoundingClientRect();
+        const offset = y - box.top - box.height / 2;
+        
+        if (offset < 0 && offset > closest.offset) {
+            return { offset: offset, element: child };
+        } else {
+            return closest;
+        }
+    }, { offset: Number.NEGATIVE_INFINITY }).element;
+}
+
+// Update Preview
+function updatePreview() {
+    const data = state.wizardData.numberOfHives;
+    const firstHive = `${data.prefix} ${data.startNumber}`;
+    const lastHive = `${data.prefix} ${data.startNumber + data.count - 1}`;
+    const range = data.count === 1 ? firstHive : `${firstHive}..${lastHive}`;
+    
+    elements.apiaryPreview.innerHTML = `
+        <div class="preview-item">
+            <strong>${firstHive}</strong>
+            <span>${data.count > 1 ? `(${range})` : ''}</span>
+        </div>
+    `;
+}
+
+// Validate Wizard Step
+function validateWizardStep(step) {
+    const data = state.wizardData;
+    
+    if (step === 1) {
+        const name = elements.apiaryName.value.trim();
+        if (name.length < 3 || name.length > 30) {
+            alert(state.language === 'ar' ? 'اسم المنحل يجب أن يكون بين 3 و 30 حرفاً' : 'Apiary name must be between 3 and 30 characters');
+            return false;
+        }
+        
+        // Check uniqueness
+        const isUnique = !state.apiaries.some(a => a.name.toLowerCase() === name.toLowerCase());
+        if (!isUnique) {
+            alert(state.language === 'ar' ? 'اسم المنحل موجود بالفعل' : 'Apiary name already exists');
+            return false;
+        }
+        
+        return true;
+    } else if (step === 2) {
+        // Location is optional, but validate if provided
+        const lat = parseFloat(elements.locationLatitude.value);
+        const lng = parseFloat(elements.locationLongitude.value);
+        
+        if (elements.locationLatitude.value && (isNaN(lat) || lat < -90 || lat > 90)) {
+            alert(state.language === 'ar' ? 'خط العرض يجب أن يكون بين -90 و 90' : 'Latitude must be between -90 and 90');
+            return false;
+        }
+        
+        if (elements.locationLongitude.value && (isNaN(lng) || lng < -180 || lng > 180)) {
+            alert(state.language === 'ar' ? 'خط الطول يجب أن يكون بين -180 و 180' : 'Longitude must be between -180 and 180');
+            return false;
+        }
+        
+        return true;
+    } else if (step === 3) {
+        if (!elements.hiveType.value) {
+            alert(state.language === 'ar' ? 'يرجى اختيار نوع الخلية' : 'Please select a hive type');
+            return false;
+        }
+        
+        // Check if at least one of brood or honey layer exists
+        const layers = state.wizardData.hiveConfig.layers;
+        if (!layers.includes('brood') && !layers.includes('honey')) {
+            alert(state.language === 'ar' ? 'يجب أن تحتوي الخلية على طبقة حضنة أو طبقة عسل على الأقل' : 'Hive must have at least a Brood layer or Honey layer');
+            return false;
+        }
+        
+        return true;
+    } else if (step === 4) {
+        const count = parseInt(elements.numberOfHives.value);
+        if (isNaN(count) || count < 1 || count > 500) {
+            alert(state.language === 'ar' ? 'عدد الخلايا يجب أن يكون بين 1 و 500' : 'Number of hives must be between 1 and 500');
+            return false;
+        }
+        
+        return true;
+    }
+    
+    return true;
+}
+
+// Save Wizard Data
+function saveWizardData() {
+    const data = state.wizardData;
+    
+    if (state.wizardStep === 1) {
+        data.apiary.name = elements.apiaryName.value.trim();
+        data.apiary.color = elements.apiaryColor.value;
+        data.apiary.hasRoof = elements.apiaryHasRoof.checked;
+    } else if (state.wizardStep === 2) {
+        data.location.address = elements.locationAddress.value.trim();
+        data.location.country = elements.locationCountry.value;
+        data.location.city = elements.locationCity.value.trim();
+        data.location.street = elements.locationStreet.value.trim();
+        data.location.number = elements.locationNumber.value.trim();
+        data.location.postalCode = elements.locationPostalCode.value.trim();
+        data.location.latitude = elements.locationLatitude.value ? parseFloat(elements.locationLatitude.value) : null;
+        data.location.longitude = elements.locationLongitude.value ? parseFloat(elements.locationLongitude.value) : null;
+    } else if (state.wizardStep === 3) {
+        data.hiveConfig.color = elements.hiveColor.value;
+        data.hiveConfig.framesPerLayer = parseInt(elements.framesPerLayer.value);
+        data.hiveConfig.hiveType = elements.hiveType.value;
+        data.hiveConfig.dimensions.broodWidth = parseFloat(elements.broodWidth.value) || 0;
+        data.hiveConfig.dimensions.broodHeight = parseFloat(elements.broodHeight.value) || 0;
+        data.hiveConfig.dimensions.broodDepth = parseFloat(elements.broodDepth.value) || 0;
+        data.hiveConfig.dimensions.frameWidth = parseFloat(elements.frameWidth.value) || 0;
+        data.hiveConfig.dimensions.frameHeight = parseFloat(elements.frameHeight.value) || 0;
+        
+        // Update layers order
+        const layerItems = elements.layersContainer.querySelectorAll('.layer-item');
+        data.hiveConfig.layers = Array.from(layerItems).map(item => item.dataset.layer);
+    } else if (state.wizardStep === 4) {
+        data.numberOfHives.count = parseInt(elements.numberOfHives.value);
+        data.numberOfHives.prefix = elements.hiveNamePrefix.value.trim() || 'Hive';
+        data.numberOfHives.startNumber = parseInt(elements.hiveStartNumber.value);
+    }
+}
+
+// Next Wizard Step
+function nextWizardStep() {
+    if (!validateWizardStep(state.wizardStep)) {
+        return;
+    }
+    
+    saveWizardData();
+    
+    if (state.wizardStep < 4) {
+        state.wizardStep++;
+        renderWizard();
+    }
+}
+
+// Previous Wizard Step
+function previousWizardStep() {
+    saveWizardData();
+    
+    if (state.wizardStep > 1) {
+        state.wizardStep--;
+        renderWizard();
+    }
+}
+
+// Save Apiary
+function saveApiary() {
+    if (!validateWizardStep(4)) {
+        return;
+    }
+    
+    saveWizardData();
+    
+    const data = state.wizardData;
+    
+    // Create apiary
+    const apiary = {
+        id: Date.now().toString(),
+        name: data.apiary.name,
+        color: data.apiary.color,
+        hasRoof: data.apiary.hasRoof,
+        createdAt: new Date().toISOString()
+    };
+    
+    // Create location if any data provided
+    let location = null;
+    if (data.location.address || data.location.country || data.location.city || 
+        data.location.latitude !== null || data.location.longitude !== null) {
+        location = {
+            id: Date.now().toString() + '_loc',
+            apiaryId: apiary.id,
+            address: data.location.address,
+            country: data.location.country,
+            city: data.location.city,
+            street: data.location.street,
+            number: data.location.number,
+            postalCode: data.location.postalCode,
+            latitude: data.location.latitude,
+            longitude: data.location.longitude,
+            precision: data.location.latitude !== null && data.location.longitude !== null ? 'precise' : 
+                      (data.location.city || data.location.country ? 'coarse' : 'none')
+        };
+    }
+    
+    // Create hive config template
+    const hiveConfigTemplate = {
+        id: Date.now().toString() + '_config',
+        apiaryId: apiary.id,
+        color: data.hiveConfig.color,
+        framesPerLayer: data.hiveConfig.framesPerLayer,
+        hiveType: data.hiveConfig.hiveType,
+        layers: data.hiveConfig.layers,
+        dimensions: data.hiveConfig.dimensions
+    };
+    
+    // Create hives
+    const hives = [];
+    for (let i = 0; i < data.numberOfHives.count; i++) {
+        hives.push({
+            id: Date.now().toString() + '_hive_' + i,
+            apiaryId: apiary.id,
+            name: `${data.numberOfHives.prefix} ${data.numberOfHives.startNumber + i}`,
+            configTemplateId: hiveConfigTemplate.id,
+            createdAt: new Date().toISOString()
+        });
+    }
+    
+    // Save to state
+    state.apiaries.push(apiary);
+    if (location) {
+        // Store location with apiary for simplicity
+        apiary.location = location;
+    }
+    apiary.hiveConfigTemplate = hiveConfigTemplate;
+    state.hives.push(...hives);
+    
+    // Save to localStorage
+    saveData();
+    
+    // Clear draft
+    localStorage.removeItem('apiaryWizardDraft');
+    
+    // Show success message
+    const t = getTranslation();
+    alert(state.language === 'ar' 
+        ? `تم إنشاء المنحل "${apiary.name}" مع ${hives.length} خلية بنجاح`
+        : `Apiary "${apiary.name}" created successfully with ${hives.length} hive(s)`);
+    
+    // Close wizard
+    closeApiaryWizard();
+}
+
+// Handle New Hive
+function handleNewHive() {
+    if (state.apiaries.length === 0) {
+        const t = getTranslation();
+        if (confirm(state.language === 'ar' 
+            ? 'ليس لديك أي منحل. هل تريد إنشاء منحل جديد أولاً؟'
+            : 'You have no apiaries. Would you like to create one first?')) {
+            openApiaryWizard();
+        }
+        return;
+    }
+    
+    // TODO: Implement single hive creation dialog
+    alert(state.language === 'ar' ? 'إنشاء خلية جديدة - قريباً' : 'New Hive creation - Coming soon');
+}
+
+// Handle New Inspection
+function handleNewInspection() {
+    if (state.hives.length === 0) {
+        const t = getTranslation();
+        if (confirm(state.language === 'ar'
+            ? 'ليس لديك أي خلايا. هل تريد إنشاء منحل وخلايا أولاً؟'
+            : 'You have no hives. Would you like to create an apiary and hives first?')) {
+            openApiaryWizard();
+        }
+        return;
+    }
+    
+    // TODO: Implement inspection creation dialog
+    alert(state.language === 'ar' ? 'إنشاء فحص جديد - قريباً' : 'New Inspection creation - Coming soon');
+}
+
+// Handle New Collaboration Group
+function handleNewCollaborationGroup() {
+    // TODO: Implement collaboration group creation dialog
+    alert(state.language === 'ar' ? 'إنشاء مجموعة تعاون جديدة - قريباً' : 'New Collaboration Group creation - Coming soon');
+}
+
+// Handle Number Input Controls
+function handleNumberInput(field, action) {
+    // Map field names to actual input IDs
+    const fieldMap = {
+        'latitude': 'locationLatitude',
+        'longitude': 'locationLongitude',
+        'framesPerLayer': 'framesPerLayer',
+        'broodWidth': 'broodWidth',
+        'broodHeight': 'broodHeight',
+        'broodDepth': 'broodDepth',
+        'frameWidth': 'frameWidth',
+        'frameHeight': 'frameHeight',
+        'numberOfHives': 'numberOfHives',
+        'hiveStartNumber': 'hiveStartNumber'
+    };
+    
+    const inputId = fieldMap[field] || field;
+    const input = document.getElementById(inputId);
+    if (!input) return;
+    
+    let value = parseFloat(input.value) || 0;
+    const step = parseFloat(input.step) || 1;
+    const min = parseFloat(input.min) || -Infinity;
+    const max = parseFloat(input.max) || Infinity;
+    
+    if (action === 'increment') {
+        value = Math.min(value + step, max);
+    } else if (action === 'decrement') {
+        value = Math.max(value - step, min);
+    }
+    
+    input.value = value;
+    
+    // Save wizard data and update preview if needed
+    saveWizardData();
+    if (state.wizardStep === 4 && (field === 'numberOfHives' || field === 'hiveStartNumber')) {
+        updatePreview();
+    }
+}
+
+// Create Menu
+if (elements.createMenuBtn) {
+    elements.createMenuBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        toggleCreateMenu();
+    });
+}
+
+if (elements.createNewApiary) {
+    elements.createNewApiary.addEventListener('click', () => handleCreateAction('new-apiary'));
+}
+if (elements.createNewHive) {
+    elements.createNewHive.addEventListener('click', () => handleCreateAction('new-hive'));
+}
+if (elements.createNewInspection) {
+    elements.createNewInspection.addEventListener('click', () => handleCreateAction('new-inspection'));
+}
+if (elements.createNewGroup) {
+    elements.createNewGroup.addEventListener('click', () => handleCreateAction('new-collaboration-group'));
+}
+
+// Wizard
+if (elements.wizardClose) {
+    elements.wizardClose.addEventListener('click', closeApiaryWizard);
+}
+if (elements.wizardBackBtn) {
+    elements.wizardBackBtn.addEventListener('click', previousWizardStep);
+}
+if (elements.wizardNextBtn) {
+    elements.wizardNextBtn.addEventListener('click', nextWizardStep);
+}
+if (elements.wizardSaveBtn) {
+    elements.wizardSaveBtn.addEventListener('click', saveApiary);
+}
+
+// Color swatches
+document.querySelectorAll('.color-swatch').forEach(swatch => {
+    swatch.addEventListener('click', () => {
+        const color = swatch.dataset.color;
+        if (elements.apiaryColor) {
+            elements.apiaryColor.value = color;
+        }
+    });
+});
+
+// Number input controls
+document.querySelectorAll('.number-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+        const field = btn.dataset.field;
+        const action = btn.dataset.action;
+        handleNumberInput(field, action);
+    });
+});
+
+// Form field updates
+if (elements.apiaryName) {
+    elements.apiaryName.addEventListener('input', () => {
+        saveWizardData();
+    });
+}
+
+if (elements.apiaryColor) {
+    elements.apiaryColor.addEventListener('change', () => {
+        saveWizardData();
+    });
+}
+
+if (elements.apiaryHasRoof) {
+    elements.apiaryHasRoof.addEventListener('change', () => {
+        saveWizardData();
+    });
+}
+
+if (elements.hiveColor) {
+    elements.hiveColor.addEventListener('change', () => {
+        saveWizardData();
+    });
+}
+
+if (elements.framesPerLayer) {
+    elements.framesPerLayer.addEventListener('input', () => {
+        saveWizardData();
+    });
+}
+
+if (elements.hiveType) {
+    elements.hiveType.addEventListener('change', () => {
+        saveWizardData();
+    });
+}
+
+if (elements.numberOfHives) {
+    elements.numberOfHives.addEventListener('input', () => {
+        saveWizardData();
+        if (state.wizardStep === 4) {
+            updatePreview();
+        }
+    });
+}
+
+if (elements.hiveNamePrefix) {
+    elements.hiveNamePrefix.addEventListener('input', () => {
+        saveWizardData();
+        if (state.wizardStep === 4) {
+            updatePreview();
+        }
+    });
+}
+
+if (elements.hiveStartNumber) {
+    elements.hiveStartNumber.addEventListener('input', () => {
+        saveWizardData();
+        if (state.wizardStep === 4) {
+            updatePreview();
+        }
+    });
+}
+
+// Update translations for create menu
+function updateCreateMenuTranslations() {
+    const t = getTranslation();
+    if (elements.createMenuText) elements.createMenuText.textContent = t.create.menu;
+    if (elements.createNewApiary) {
+        const span = elements.createNewApiary.querySelector('span');
+        if (span) span.textContent = t.create.newApiary;
+    }
+    if (elements.createNewHive) {
+        const span = elements.createNewHive.querySelector('span');
+        if (span) span.textContent = t.create.newHive;
+    }
+    if (elements.createNewInspection) {
+        const span = elements.createNewInspection.querySelector('span');
+        if (span) span.textContent = t.create.newInspection;
+    }
+    if (elements.createNewGroup) {
+        const span = elements.createNewGroup.querySelector('span');
+        if (span) span.textContent = t.create.newGroup;
+    }
+}
+
+// Update UI to include create menu translations
+const originalUpdateUI = updateUI;
+updateUI = function() {
+    originalUpdateUI();
+    updateCreateMenuTranslations();
+    if (state.currentView === 'apiaryWizard') {
+        renderWizard();
+    }
+};
+
 // Initialize
+loadData();
 updateUI();
 switchView('home');
