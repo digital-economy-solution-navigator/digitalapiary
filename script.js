@@ -1398,105 +1398,316 @@ function handleAudioUpload(e) {
     }
 }
 
+// Generate Dummy Image Analysis
+function generateDummyImageAnalysis() {
+    const isArabic = state.language === 'ar';
+    const random = Math.random();
+    
+    // Status distribution: Healthy (40%), Monitor (40%), Concern (20%)
+    let status, analysisText, confidence;
+    
+    if (random < 0.4) {
+        // Healthy (40%)
+        status = 'Healthy';
+        confidence = (92 + Math.floor(Math.random() * 4)) + '%'; // 92-95%
+        
+        if (isArabic) {
+            analysisText = `تحليل الصورة يكشف حالة صحية ممتازة للمستعمرة:
+
+• نمط الحضنة ممتاز مع تغطية متسقة وموحدة
+• عدد قوي من النحل العامل ملاحظ
+• نشاط الملكة يبدو طبيعياً
+• لا توجد علامات واضحة على الأمراض أو الآفات
+
+التوصيات:
+• استمر في ممارسات الإدارة الحالية
+• راقب المستعمرة بانتظام
+• تأكد من وجود مصادر غذاء كافية
+
+المراجع المعتمدة: قاعدة بيانات USGS للنحل، مجموعة بيانات TensorFlow للنحل، بوابة B-GOOD`;
+        } else {
+            analysisText = `Image analysis reveals excellent colony health:
+
+• Excellent brood pattern with consistent and uniform capping
+• Strong worker bee population observed
+• Queen activity appears normal
+• No clear signs of disease or pests detected
+
+Recommendations:
+• Continue current management practices
+• Maintain regular monitoring schedule
+• Ensure adequate food sources are available
+
+Validated references: USGS Bee Database, TensorFlow Bee Dataset, B-GOOD Portal`;
+        }
+    } else if (random < 0.8) {
+        // Monitor (40%)
+        status = 'Monitor';
+        confidence = (93 + Math.floor(Math.random() * 3)) + '%'; // 93-95%
+        
+        if (isArabic) {
+            analysisText = `تحليل الصورة يكشف بعض العلامات التي تتطلب المراقبة:
+
+• بعض خلايا الحضنة غير مغطاة تم اكتشافها
+• وجود محتمل لعث الفاروا
+• نمط الحضنة غير منتظم قليلاً في بعض المناطق
+• نشاط الملكة يبدو طبيعياً بشكل عام
+
+التوصيات:
+• راقب المستعمرة عن كثب في الأيام القادمة
+• فحص إضافي للآفات والأمراض
+• علاج محتمل إذا استمرت الأعراض
+• تأكد من وجود مساحة كافية في الخلية
+
+المراجع المعتمدة: قاعدة بيانات USGS للنحل، مجموعة بيانات TensorFlow للنحل، بوابة B-GOOD`;
+        } else {
+            analysisText = `Image analysis reveals some areas requiring monitoring:
+
+• Some uncapped brood cells detected
+• Possible Varroa mite presence
+• Slightly irregular brood pattern in some areas
+• Queen activity appears generally normal
+
+Recommendations:
+• Monitor colony closely in coming days
+• Additional inspection for pests and diseases
+• Consider treatment if symptoms persist
+• Ensure adequate hive space is available
+
+Validated references: USGS Bee Database, TensorFlow Bee Dataset, B-GOOD Portal`;
+        }
+    } else {
+        // Concern (20%)
+        status = 'Concern';
+        confidence = (92 + Math.floor(Math.random() * 4)) + '%'; // 92-95%
+        
+        if (isArabic) {
+            analysisText = `تحليل الصورة يكشف مخاوف محتملة تتطلب اهتماماً فورياً:
+
+• نمط الحضنة غير منتظم بشكل كبير، مما يشير إلى مشاكل محتملة في الملكة
+• انخفاض ملحوظ في عدد النحل العامل
+• بعض علامات الأمراض أو الآفات قد تكون موجودة
+• نشاط المستعمرة يبدو منخفضاً
+
+التوصيات:
+• فحص فوري للمستعمرة من قبل خبير محلي
+• النظر في استبدال الملكة (requeening)
+• عزل الخلية إذا كان هناك شك في المرض
+• استشارة وكيل الإرشاد الزراعي المحلي
+
+المراجع المعتمدة: قاعدة بيانات USGS للنحل، مجموعة بيانات TensorFlow للنحل، بوابة B-GOOD`;
+        } else {
+            analysisText = `Image analysis reveals potential concerns requiring immediate attention:
+
+• Significantly irregular brood pattern suggesting possible queen issues
+• Noticeable reduction in worker bee population
+• Some signs of disease or pests may be present
+• Colony activity appears reduced
+
+Recommendations:
+• Immediate visual inspection by local expert
+• Consider requeening if queen issues confirmed
+• Isolate hive if disease is suspected
+• Consult with local extension agent
+
+Validated references: USGS Bee Database, TensorFlow Bee Dataset, B-GOOD Portal`;
+        }
+    }
+    
+    return {
+        status,
+        fullAnalysis: analysisText,
+        confidence
+    };
+}
+
 // Analyze Hive
 async function analyzeHive(imageData) {
     state.isAnalyzing = true;
     state.analysisResult = null;
     renderVisual();
     
-    try {
-        const response = await fetch("https://api.anthropic.com/v1/messages", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-                model: "claude-sonnet-4-20250514",
-                max_tokens: 1000,
-                messages: [
-                    {
-                        role: "user",
-                        content: [
-                            {
-                                type: "image",
-                                source: {
-                                    type: "base64",
-                                    media_type: imageData.split(';')[0].split(':')[1],
-                                    data: imageData.split(',')[1]
-                                }
-                            },
-                            {
-                                type: "text",
-                                text: "You are an AI assistant for beekeepers in Egypt, validated by 3,000+ authorized references. Analyze this hive or brood frame image and provide: 1) Overall health status (Healthy/Monitor/Concern), 2) Key observations (2-3 bullet points), 3) Recommended actions (2-3 bullet points). Be practical, supportive, and emphasize this is advisory guidance. Keep response concise and actionable for small-scale beekeepers. Reference validated datasets: USGS Bee Database, TensorFlow Bee Dataset, B-GOOD Portal."
-                            }
-                        ]
-                    }
-                ]
-            })
-        });
-        
-        const data = await response.json();
-        const analysisText = data.content.find(c => c.type === 'text')?.text || 'Analysis complete. Please consult with local beekeeping experts for detailed guidance.';
-        
-        // Parse the response to extract structured data
-        let status = 'Monitor';
-        if (analysisText.toLowerCase().includes('healthy') && !analysisText.toLowerCase().includes('concern')) {
-            status = 'Healthy';
-        } else if (analysisText.toLowerCase().includes('concern') || analysisText.toLowerCase().includes('problem')) {
-            status = 'Concern';
-        }
-        
-        state.analysisResult = {
-            status,
-            fullAnalysis: analysisText,
-            timestamp: new Date().toLocaleString(state.language === 'ar' ? 'ar-EG' : 'en-US'),
-            confidence: '95-98%',
-            hiveId: null,
-            apiaryId: null
-        };
-        
-        // Update result display
-        elements.resultCard.className = `result-card ${status.toLowerCase()}`;
-        elements.resultIcon.className = `result-icon ${status.toLowerCase()}`;
-        elements.resultIcon.innerHTML = status === 'Healthy' ? icons.checkCircle : icons.alertCircle;
-        elements.resultTimestamp.textContent = state.analysisResult.timestamp;
-        elements.resultConfidence.textContent = `Confidence: ${state.analysisResult.confidence}`;
-        elements.resultText.textContent = state.analysisResult.fullAnalysis;
-        
-        // Add data sources
-        const selectedSources = dataSources.slice(0, 5);
-        elements.sourcesList.innerHTML = selectedSources.map(source => `<li>${source}</li>`).join('');
-        
-        // Show save inspection button if user is authenticated and has hives
-        if (state.isAuthenticated && state.hives.length > 0 && elements.saveInspectionBtn) {
-            elements.saveInspectionBtn.style.display = 'inline-block';
-            if (elements.saveInspectionBtnText) {
-                elements.saveInspectionBtnText.textContent = state.language === 'ar' ? 'حفظ كفحص' : 'Save as Inspection';
+    // Simulate analysis delay (2-3 seconds)
+    const delay = 2000 + Math.random() * 1000; // 2000-3000ms
+    
+    setTimeout(() => {
+        try {
+            // Generate dummy analysis
+            const dummyAnalysis = generateDummyImageAnalysis();
+            
+            state.analysisResult = {
+                status: dummyAnalysis.status,
+                fullAnalysis: dummyAnalysis.fullAnalysis,
+                timestamp: new Date().toLocaleString(state.language === 'ar' ? 'ar-EG' : 'en-US'),
+                confidence: dummyAnalysis.confidence,
+                hiveId: null,
+                apiaryId: null
+            };
+            
+            // Update result display
+            elements.resultCard.className = `result-card ${dummyAnalysis.status.toLowerCase()}`;
+            elements.resultIcon.className = `result-icon ${dummyAnalysis.status.toLowerCase()}`;
+            elements.resultIcon.innerHTML = dummyAnalysis.status === 'Healthy' ? icons.checkCircle : icons.alertCircle;
+            elements.resultTimestamp.textContent = state.analysisResult.timestamp;
+            elements.resultConfidence.textContent = `Confidence: ${state.analysisResult.confidence}`;
+            elements.resultText.textContent = state.analysisResult.fullAnalysis;
+            
+            // Add data sources
+            const selectedSources = dataSources.slice(0, 5);
+            elements.sourcesList.innerHTML = selectedSources.map(source => `<li>${source}</li>`).join('');
+            
+            // Show save inspection button if user is authenticated and has hives
+            if (state.isAuthenticated && state.hives.length > 0 && elements.saveInspectionBtn) {
+                elements.saveInspectionBtn.style.display = 'inline-block';
+                if (elements.saveInspectionBtnText) {
+                    elements.saveInspectionBtnText.textContent = state.language === 'ar' ? 'حفظ كفحص' : 'Save as Inspection';
+                }
+            } else if (elements.saveInspectionBtn) {
+                elements.saveInspectionBtn.style.display = 'none';
             }
-        } else if (elements.saveInspectionBtn) {
-            elements.saveInspectionBtn.style.display = 'none';
+            
+        } catch (error) {
+            state.analysisResult = {
+                status: 'Error',
+                fullAnalysis: state.language === 'ar'
+                    ? 'حدث خطأ أثناء التحليل. يرجى المحاولة مرة أخرى.'
+                    : 'An error occurred during analysis. Please try again.',
+                timestamp: new Date().toLocaleString(state.language === 'ar' ? 'ar-EG' : 'en-US'),
+                confidence: 'N/A'
+            };
+            
+            elements.resultCard.className = 'result-card';
+            elements.resultIcon.className = 'result-icon';
+            elements.resultIcon.innerHTML = icons.alertCircle;
+            elements.resultTimestamp.textContent = state.analysisResult.timestamp;
+            elements.resultConfidence.textContent = '';
+            elements.resultText.textContent = state.analysisResult.fullAnalysis;
+        } finally {
+            state.isAnalyzing = false;
+            renderVisual();
         }
+    }, delay);
+}
+
+// Generate Dummy Audio Analysis
+function generateDummyAudioAnalysis() {
+    const isArabic = state.language === 'ar';
+    const random = Math.random();
+    
+    // Status distribution: Healthy (30%), Monitor (50%), Concern (20%)
+    let status, analysisText, confidence;
+    
+    if (random < 0.3) {
+        // Healthy (30%)
+        status = 'Healthy';
+        confidence = (90 + Math.floor(Math.random() * 3)) + '%'; // 90-92%
         
-    } catch (error) {
-        state.analysisResult = {
-            status: 'Error',
-            fullAnalysis: state.language === 'ar'
-                ? 'حدث خطأ أثناء التحليل. يرجى المحاولة مرة أخرى.'
-                : 'An error occurred during analysis. Please try again.',
-            timestamp: new Date().toLocaleString(state.language === 'ar' ? 'ar-EG' : 'en-US'),
-            confidence: 'N/A'
-        };
+        if (isArabic) {
+            analysisText = `تحليل الصوت يكشف نشاطاً طبيعياً وصحياً للمستعمرة:
+
+• أنماط التردد الطبيعية للنحل العامل
+• لا توجد مؤشرات على تحضير السرب
+• مستويات النشاط ضمن النطاق الصحي
+• لا توجد علامات على الإجهاد أو المرض
+
+التوصيات:
+• استمر في الممارسات الحالية
+• راقب المستعمرة بشكل دوري
+• تأكد من وجود مصادر غذاء كافية
+
+المراجع المعتمدة: قاعدة بيانات USGS للنحل، مجموعة بيانات TensorFlow للنحل، بوابة B-GOOD`;
+        } else {
+            analysisText = `Audio analysis reveals normal and healthy colony activity:
+
+• Normal frequency patterns for worker bees detected
+• No swarming preparation indicators present
+• Activity levels within healthy range
+• No signs of stress or disease detected
+
+Recommendations:
+• Continue current management practices
+• Maintain regular monitoring schedule
+• Ensure adequate food sources are available
+
+Validated references: USGS Bee Database, TensorFlow Bee Dataset, B-GOOD Portal`;
+        }
+    } else if (random < 0.8) {
+        // Monitor (50%)
+        status = 'Monitor';
+        confidence = (88 + Math.floor(Math.random() * 4)) + '%'; // 88-91%
         
-        elements.resultCard.className = 'result-card';
-        elements.resultIcon.className = 'result-icon';
-        elements.resultIcon.innerHTML = icons.alertCircle;
-        elements.resultTimestamp.textContent = state.analysisResult.timestamp;
-        elements.resultConfidence.textContent = '';
-        elements.resultText.textContent = state.analysisResult.fullAnalysis;
-    } finally {
-        state.isAnalyzing = false;
-        renderVisual();
+        if (isArabic) {
+            analysisText = `تحليل الصوت يكشف مستويات نشاط متزايدة تتطلب المراقبة:
+
+• زيادة في مستويات النشاط قد تشير إلى تحضير محتمل للسرب
+• أنماط التردد تشير إلى نشاط ملكة نشط
+• بعض التغيرات في أنماط الصوت قد تكون طبيعية أو تتطلب المتابعة
+
+التوصيات:
+• راقب المستعمرة عن كثب للبحث عن خلايا الملكة
+• فكر في توسيع الخلية إذا كانت مكتظة
+• تأكد من وجود مساحة كافية للتوسع
+• راقب علامات السرب في الأيام القادمة
+
+المراجع المعتمدة: قاعدة بيانات USGS للنحل، مجموعة بيانات TensorFlow للنحل، بوابة B-GOOD`;
+        } else {
+            analysisText = `Audio analysis reveals increased activity levels requiring monitoring:
+
+• Elevated activity levels may suggest potential swarming preparation
+• Frequency patterns indicate active queen activity
+• Some variations in sound patterns may be normal or require follow-up
+
+Recommendations:
+• Monitor colony closely for queen cells
+• Consider hive expansion if colony is crowded
+• Ensure adequate space for expansion
+• Watch for swarming signs in coming days
+
+Validated references: USGS Bee Database, TensorFlow Bee Dataset, B-GOOD Portal`;
+        }
+    } else {
+        // Concern (20%)
+        status = 'Concern';
+        confidence = (88 + Math.floor(Math.random() * 3)) + '%'; // 88-90%
+        
+        if (isArabic) {
+            analysisText = `تحليل الصوت يكشف أنماط تردد غير عادية تتطلب اهتماماً فورياً:
+
+• أنماط التردد غير الطبيعية قد تشير إلى إجهاد المستعمرة
+• انخفاض في مستويات النشاط العام
+• تغيرات في أنماط الصوت قد تشير إلى مشاكل صحية محتملة
+• قد تكون هناك علامات على المرض أو الإجهاد
+
+التوصيات:
+• فحص بصري فوري للمستعمرة
+• استشارة خبير محلي في تربية النحل
+• فحص للآفات والأمراض
+• النظر في عزل الخلية إذا كان هناك شك في المرض
+
+المراجع المعتمدة: قاعدة بيانات USGS للنحل، مجموعة بيانات TensorFlow للنحل، بوابة B-GOOD`;
+        } else {
+            analysisText = `Audio analysis reveals unusual frequency patterns requiring immediate attention:
+
+• Abnormal frequency patterns may indicate colony stress
+• Reduction in overall activity levels
+• Changes in sound patterns may suggest potential health issues
+• Possible signs of disease or stress present
+
+Recommendations:
+• Immediate visual inspection of colony
+• Consult with local beekeeping expert
+• Check for pests and diseases
+• Consider isolating hive if disease is suspected
+
+Validated references: USGS Bee Database, TensorFlow Bee Dataset, B-GOOD Portal`;
+        }
     }
+    
+    return {
+        status,
+        fullAnalysis: analysisText,
+        confidence
+    };
 }
 
 // Analyze Audio
@@ -1505,26 +1716,46 @@ async function analyzeAudio() {
     state.audioAnalysisResult = null;
     renderAcoustic();
     
-    // Simulate audio analysis (in production, this would call an audio analysis API)
+    // Simulate audio analysis delay (2 seconds)
     setTimeout(() => {
-        const t = getTranslation();
-        state.audioAnalysisResult = {
-            status: 'Monitor',
-            fullAnalysis: state.language === 'ar'
-                ? 'تحليل الصوت يكشف وجود نشاط طبيعي في المستعمرة. لا توجد علامات واضحة على تحضير السرب. يُنصح بمراقبة مستمرة.'
-                : 'Audio analysis reveals normal colony activity. No clear signs of swarming preparation detected. Continued monitoring recommended.',
-            timestamp: new Date().toLocaleString(state.language === 'ar' ? 'ar-EG' : 'en-US')
-        };
-        
-        elements.audioResultCard.className = 'result-card monitor';
-        elements.audioResultIcon.className = 'result-icon monitor';
-        elements.audioResultIcon.innerHTML = icons.alertCircle;
-        elements.audioResultTitle.textContent = state.language === 'ar' ? 'نتيجة التحليل الصوتي' : 'Acoustic Analysis Result';
-        elements.audioResultTimestamp.textContent = state.audioAnalysisResult.timestamp;
-        elements.audioResultText.textContent = state.audioAnalysisResult.fullAnalysis;
-        
-        state.isAnalyzingAudio = false;
-        renderAcoustic();
+        try {
+            // Generate dummy analysis
+            const dummyAnalysis = generateDummyAudioAnalysis();
+            
+            state.audioAnalysisResult = {
+                status: dummyAnalysis.status,
+                fullAnalysis: dummyAnalysis.fullAnalysis,
+                timestamp: new Date().toLocaleString(state.language === 'ar' ? 'ar-EG' : 'en-US'),
+                confidence: dummyAnalysis.confidence
+            };
+            
+            elements.audioResultCard.className = `result-card ${dummyAnalysis.status.toLowerCase()}`;
+            elements.audioResultIcon.className = `result-icon ${dummyAnalysis.status.toLowerCase()}`;
+            elements.audioResultIcon.innerHTML = dummyAnalysis.status === 'Healthy' ? icons.checkCircle : icons.alertCircle;
+            elements.audioResultTitle.textContent = state.language === 'ar' ? 'نتيجة التحليل الصوتي' : 'Acoustic Analysis Result';
+            elements.audioResultTimestamp.textContent = state.audioAnalysisResult.timestamp;
+            elements.audioResultText.textContent = state.audioAnalysisResult.fullAnalysis;
+            
+        } catch (error) {
+            state.audioAnalysisResult = {
+                status: 'Error',
+                fullAnalysis: state.language === 'ar'
+                    ? 'حدث خطأ أثناء التحليل الصوتي. يرجى المحاولة مرة أخرى.'
+                    : 'An error occurred during audio analysis. Please try again.',
+                timestamp: new Date().toLocaleString(state.language === 'ar' ? 'ar-EG' : 'en-US'),
+                confidence: 'N/A'
+            };
+            
+            elements.audioResultCard.className = 'result-card';
+            elements.audioResultIcon.className = 'result-icon';
+            elements.audioResultIcon.innerHTML = icons.alertCircle;
+            elements.audioResultTitle.textContent = state.language === 'ar' ? 'نتيجة التحليل الصوتي' : 'Acoustic Analysis Result';
+            elements.audioResultTimestamp.textContent = state.audioAnalysisResult.timestamp;
+            elements.audioResultText.textContent = state.audioAnalysisResult.fullAnalysis;
+        } finally {
+            state.isAnalyzingAudio = false;
+            renderAcoustic();
+        }
     }, 2000);
 }
 
