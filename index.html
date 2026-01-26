@@ -20,8 +20,19 @@
                     <p class="header-tagline" id="headerTagline">UNIDO & EU Partnership | Validated by 3,000+ Authorized References</p>
                 </div>
                 <div class="header-right">
+                    <!-- User Info (when authenticated) -->
+                    <div class="user-info" id="userInfo" style="display: none;">
+                        <span class="user-name" id="userName"></span>
+                        <button class="btn-logout" id="logoutBtn" title="Logout">
+                            <svg class="icon-logout" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                                <polyline points="16 17 21 12 16 7"></polyline>
+                                <line x1="21" y1="12" x2="9" y2="12"></line>
+                            </svg>
+                        </button>
+                    </div>
                     <!-- Create Menu -->
-                    <div class="create-menu-wrapper">
+                    <div class="create-menu-wrapper" id="createMenuWrapper" style="display: none;">
                         <button class="create-menu-btn" id="createMenuBtn">
                             <svg class="icon-plus" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <line x1="12" y1="5" x2="12" y2="19"></line>
@@ -78,6 +89,7 @@
             <nav class="nav">
                 <div class="nav-desktop">
                     <button class="nav-btn active" data-view="home" id="navHome">Home</button>
+                    <button class="nav-btn" data-view="workspace" id="navWorkspace" style="display: none;">Workspace</button>
                     <button class="nav-btn" data-view="visual" id="navVisual">Visual Analysis</button>
                     <button class="nav-btn" data-view="acoustic" id="navAcoustic">Acoustic Analysis</button>
                     <button class="nav-btn" data-view="monitoring" id="navMonitoring">IoT Monitoring</button>
@@ -115,8 +127,82 @@
 
         <!-- Main Content -->
         <main class="main-content">
+            <!-- Login View -->
+            <div class="view hidden" id="viewLogin">
+                <div class="auth-container">
+                    <div class="auth-card">
+                        <h2 class="auth-title" id="loginTitle">Login to Digital Apiary</h2>
+                        <form id="loginForm" class="auth-form">
+                            <div class="form-group">
+                                <label class="form-label" for="loginEmail">Email</label>
+                                <input type="email" id="loginEmail" class="form-input" required placeholder="your@email.com">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label" for="loginPassword">Password</label>
+                                <input type="password" id="loginPassword" class="form-input" required placeholder="Password">
+                            </div>
+                            <button type="submit" class="btn-primary btn-full" id="loginBtn">
+                                <span id="loginBtnText">Login</span>
+                            </button>
+                        </form>
+                        <div class="auth-switch">
+                            <p id="loginSwitchText">Don't have an account? <a href="#" id="showRegisterLink">Register</a></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Register View -->
+            <div class="view hidden" id="viewRegister">
+                <div class="auth-container">
+                    <div class="auth-card">
+                        <h2 class="auth-title" id="registerTitle">Create Account</h2>
+                        <form id="registerForm" class="auth-form">
+                            <div class="form-group">
+                                <label class="form-label" for="registerName">Name</label>
+                                <input type="text" id="registerName" class="form-input" required placeholder="Your Name">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label" for="registerEmail">Email</label>
+                                <input type="email" id="registerEmail" class="form-input" required placeholder="your@email.com">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label" for="registerPassword">Password</label>
+                                <input type="password" id="registerPassword" class="form-input" required placeholder="Password" minlength="6">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label" for="registerConfirmPassword">Confirm Password</label>
+                                <input type="password" id="registerConfirmPassword" class="form-input" required placeholder="Confirm Password">
+                            </div>
+                            <button type="submit" class="btn-primary btn-full" id="registerBtn">
+                                <span id="registerBtnText">Register</span>
+                            </button>
+                        </form>
+                        <div class="auth-switch">
+                            <p id="registerSwitchText">Already have an account? <a href="#" id="showLoginLink">Login</a></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Workspace View -->
+            <div class="view hidden" id="viewWorkspace">
+                <div class="workspace-container">
+                    <div class="workspace-header">
+                        <h2 class="workspace-title" id="workspaceTitle">My Workspace</h2>
+                        <p class="workspace-subtitle" id="workspaceSubtitle">Manage your apiaries, hives, and inspections</p>
+                    </div>
+                    <div class="workspace-stats" id="workspaceStats">
+                        <!-- Populated by JavaScript -->
+                    </div>
+                    <div class="workspace-dashboard" id="workspaceDashboard">
+                        <!-- Populated by JavaScript -->
+                    </div>
+                </div>
+            </div>
+
             <!-- Home View -->
-            <div class="view" id="viewHome">
+            <div class="view hidden" id="viewHome">
                 <div class="home-container">
                     <div class="home-hero">
                         <div class="home-icon-wrapper">
@@ -253,6 +339,9 @@
                             </div>
                         </div>
                         <div class="result-actions">
+                            <button class="btn-secondary" id="saveInspectionBtn" style="display: none;">
+                                <span id="saveInspectionBtnText">Save as Inspection</span>
+                            </button>
                             <button class="btn-primary" id="newAnalysisBtn">
                                 <span id="newAnalysisBtnText">New Analysis</span>
                             </button>

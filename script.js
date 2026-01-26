@@ -9,6 +9,8 @@ const state = {
     analysisResult: null,
     audioAnalysisResult: null,
     userProfile: null,
+    currentUser: null,
+    isAuthenticated: false,
     mobileMenuOpen: false,
     currentTab: 'brood',
     createMenuOpen: false,
@@ -288,6 +290,7 @@ const translations = {
         validation: "معتمد من 3000+ مرجع موثوق ومصرح به",
         nav: {
             home: "الرئيسية",
+            workspace: "مساحة العمل",
             visual: "التحليل البصري",
             acoustic: "التحليل الصوتي",
             monitoring: "المراقبة الذكية",
@@ -520,6 +523,9 @@ const elements = {
     mobileMenu: document.getElementById('mobileMenu'),
     
     // Views
+    viewLogin: document.getElementById('viewLogin'),
+    viewRegister: document.getElementById('viewRegister'),
+    viewWorkspace: document.getElementById('viewWorkspace'),
     viewHome: document.getElementById('viewHome'),
     viewVisual: document.getElementById('viewVisual'),
     viewAcoustic: document.getElementById('viewAcoustic'),
@@ -528,6 +534,26 @@ const elements = {
     viewResearch: document.getElementById('viewResearch'),
     viewKnowledge: document.getElementById('viewKnowledge'),
     viewProfile: document.getElementById('viewProfile'),
+    
+    // Auth
+    loginForm: document.getElementById('loginForm'),
+    registerForm: document.getElementById('registerForm'),
+    showRegisterLink: document.getElementById('showRegisterLink'),
+    showLoginLink: document.getElementById('showLoginLink'),
+    userInfo: document.getElementById('userInfo'),
+    userName: document.getElementById('userName'),
+    logoutBtn: document.getElementById('logoutBtn'),
+    createMenuWrapper: document.getElementById('createMenuWrapper'),
+    navWorkspace: document.getElementById('navWorkspace'),
+    mobileWorkspace: document.getElementById('mobileWorkspace'),
+    
+    // Workspace
+    workspaceStats: document.getElementById('workspaceStats'),
+    workspaceDashboard: document.getElementById('workspaceDashboard'),
+    
+    // Analysis
+    saveInspectionBtn: document.getElementById('saveInspectionBtn'),
+    saveInspectionBtnText: document.getElementById('saveInspectionBtnText'),
     
     // Home
     homeWelcome: document.getElementById('homeWelcome'),
@@ -787,8 +813,14 @@ function renderHome() {
         <div class="source-badge">${source}</div>
     `).join('');
     
-    // Render dashboard with apiaries data
-    renderDashboard();
+    // Render dashboard with apiaries data (only if authenticated)
+    if (state.isAuthenticated) {
+        renderDashboard();
+    } else {
+        if (elements.dashboardGrid) {
+            elements.dashboardGrid.innerHTML = '';
+        }
+    }
 }
 
 // Render Dashboard
@@ -883,6 +915,144 @@ function renderDashboard() {
     }
     
     elements.dashboardGrid.innerHTML = state.apiaries.map(apiary => {
+        const apiaryHives = state.hives.filter(h => h.apiaryId === apiary.id);
+        const apiaryInspections = state.inspections.filter(i => i.apiaryId === apiary.id);
+        const recentInspections = apiaryInspections
+            .sort((a, b) => new Date(b.date) - new Date(a.date))
+            .slice(0, 3);
+        
+        const location = apiary.location ? 
+            `${apiary.location.city || ''}${apiary.location.city && apiary.location.country ? ', ' : ''}${apiary.location.country === 'EG' ? 'Egypt' : apiary.location.country || ''}`.trim() || 
+            (isRTL ? 'موقع غير محدد' : 'Location not specified') :
+            (isRTL ? 'موقع غير محدد' : 'Location not specified');
+        
+        return `
+            <div class="dashboard-card">
+                <div class="dashboard-card-header" style="border-left: 4px solid ${apiary.color}">
+                    <h3 class="dashboard-card-title">${apiary.name}</h3>
+                    <div class="dashboard-card-meta">
+                        <span class="dashboard-location">📍 ${location}</span>
+                        ${apiary.hasRoof ? `<span class="dashboard-badge">${isRTL ? 'سقف' : 'Roofed'}</span>` : ''}
+                    </div>
+                </div>
+                <div class="dashboard-card-stats">
+                    <div class="stat-item">
+                        <span class="stat-value">${apiaryHives.length}</span>
+                        <span class="stat-label">${isRTL ? 'خلايا' : 'Hives'}</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-value">${apiaryInspections.length}</span>
+                        <span class="stat-label">${isRTL ? 'فحوصات' : 'Inspections'}</span>
+                    </div>
+                </div>
+                ${recentInspections.length > 0 ? `
+                    <div class="dashboard-recent">
+                        <h4 class="dashboard-recent-title">${isRTL ? 'الفحوصات الأخيرة' : 'Recent Inspections'}</h4>
+                        <ul class="dashboard-inspections-list">
+                            ${recentInspections.map(inspection => {
+                                const hive = state.hives.find(h => h.id === inspection.hiveId);
+                                const statusClass = inspection.status.toLowerCase();
+                                const date = new Date(inspection.date);
+                                const dateStr = date.toLocaleDateString(isRTL ? 'ar-EG' : 'en-US', { 
+                                    month: 'short', 
+                                    day: 'numeric' 
+                                });
+                                return `
+                                    <li class="dashboard-inspection-item ${statusClass}">
+                                        <span class="inspection-hive">${hive ? hive.name : 'Unknown'}</span>
+                                        <span class="inspection-status ${statusClass}">${inspection.status}</span>
+                                        <span class="inspection-date">${dateStr}</span>
+                                    </li>
+                                `;
+                            }).join('')}
+                        </ul>
+                    </div>
+                ` : ''}
+            </div>
+        `;
+    }).join('');
+}
+
+// Render Workspace View
+function renderWorkspace() {
+    const t = getTranslation();
+    const isRTL = state.language === 'ar';
+    
+    if (!elements.workspaceStats || !elements.workspaceDashboard) return;
+    
+    // Calculate statistics
+    const totalApiaries = state.apiaries.length;
+    const totalHives = state.hives.length;
+    const totalInspections = state.inspections.length;
+    const healthyInspections = state.inspections.filter(i => i.status === 'Healthy').length;
+    const monitorInspections = state.inspections.filter(i => i.status === 'Monitor').length;
+    const concernInspections = state.inspections.filter(i => i.status === 'Concern').length;
+    
+    // Update titles
+    const workspaceTitleEl = document.getElementById('workspaceTitle');
+    const workspaceSubtitleEl = document.getElementById('workspaceSubtitle');
+    if (workspaceTitleEl) workspaceTitleEl.textContent = isRTL ? 'مساحة العمل' : 'My Workspace';
+    if (workspaceSubtitleEl) workspaceSubtitleEl.textContent = isRTL ? 'إدارة مناحلك وخلاياك وفحوصاتك' : 'Manage your apiaries, hives, and inspections';
+    
+    // Render stats
+    elements.workspaceStats.innerHTML = `
+        <div class="stat-card">
+            <div class="stat-icon">🏡</div>
+            <div class="stat-content">
+                <div class="stat-value">${totalApiaries}</div>
+                <div class="stat-label">${isRTL ? 'مناحل' : 'Apiaries'}</div>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon">🐝</div>
+            <div class="stat-content">
+                <div class="stat-value">${totalHives}</div>
+                <div class="stat-label">${isRTL ? 'خلايا' : 'Hives'}</div>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon">📋</div>
+            <div class="stat-content">
+                <div class="stat-value">${totalInspections}</div>
+                <div class="stat-label">${isRTL ? 'فحوصات' : 'Inspections'}</div>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon">✅</div>
+            <div class="stat-content">
+                <div class="stat-value">${healthyInspections}</div>
+                <div class="stat-label">${isRTL ? 'صحي' : 'Healthy'}</div>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon">⚠️</div>
+            <div class="stat-content">
+                <div class="stat-value">${monitorInspections}</div>
+                <div class="stat-label">${isRTL ? 'مراقبة' : 'Monitor'}</div>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon">🔴</div>
+            <div class="stat-content">
+                <div class="stat-value">${concernInspections}</div>
+                <div class="stat-label">${isRTL ? 'مقلق' : 'Concern'}</div>
+            </div>
+        </div>
+    `;
+    
+    // Render dashboard in workspace
+    if (!elements.workspaceDashboard) return;
+    
+    if (state.apiaries.length === 0) {
+        elements.workspaceDashboard.innerHTML = `
+            <div class="dashboard-empty">
+                <p>${isRTL ? 'لا توجد مناحل. قم بإنشاء منحل جديد للبدء.' : 'No apiaries yet. Create a new apiary to get started.'}</p>
+            </div>
+        `;
+        return;
+    }
+    
+    elements.workspaceDashboard.innerHTML = state.apiaries.map(apiary => {
         const apiaryHives = state.hives.filter(h => h.apiaryId === apiary.id);
         const apiaryInspections = state.inspections.filter(i => i.apiaryId === apiary.id);
         const recentInspections = apiaryInspections
@@ -1073,6 +1243,7 @@ function renderKnowledge() {
 // Render Profile View
 function renderProfile() {
     const t = getTranslation();
+    const isRTL = state.language === 'ar';
     
     elements.profileTitle.textContent = t.profile.title;
     elements.profileRoleLabel.textContent = t.profile.role;
@@ -1086,10 +1257,67 @@ function renderProfile() {
     elements.roleSmall.textContent = t.profile.roles.small;
     elements.roleMedium.textContent = t.profile.roles.medium;
     elements.roleCoop.textContent = t.profile.roles.coop;
+    
+    // Show user info if authenticated
+    if (state.isAuthenticated && state.currentUser) {
+        const profileForm = document.querySelector('.profile-form');
+        if (profileForm) {
+            // Add user info section at the top
+            let userInfoSection = profileForm.querySelector('.user-info-section');
+            if (!userInfoSection) {
+                userInfoSection = document.createElement('div');
+                userInfoSection.className = 'user-info-section';
+                userInfoSection.style.marginBottom = '2rem';
+                userInfoSection.style.paddingBottom = '2rem';
+                userInfoSection.style.borderBottom = '2px solid #fde68a';
+                profileForm.insertBefore(userInfoSection, profileForm.firstChild);
+            }
+            
+            userInfoSection.innerHTML = `
+                <div class="user-info-display">
+                    <h3 style="font-size: 1.25rem; font-weight: bold; color: #78350f; margin-bottom: 1rem;">${isRTL ? 'معلومات المستخدم' : 'User Information'}</h3>
+                    <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+                        <div>
+                            <strong style="color: #78350f;">${isRTL ? 'الاسم:' : 'Name:'}</strong>
+                            <span style="color: #92400e; margin-left: 0.5rem;">${state.currentUser.name}</span>
+                        </div>
+                        <div>
+                            <strong style="color: #78350f;">${isRTL ? 'البريد الإلكتروني:' : 'Email:'}</strong>
+                            <span style="color: #92400e; margin-left: 0.5rem;">${state.currentUser.email}</span>
+                        </div>
+                        <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid #fde68a;">
+                            <strong style="color: #78350f;">${isRTL ? 'الإحصائيات:' : 'Statistics:'}</strong>
+                            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-top: 0.75rem;">
+                                <div style="text-align: center;">
+                                    <div style="font-size: 1.5rem; font-weight: bold; color: #78350f;">${state.apiaries.length}</div>
+                                    <div style="font-size: 0.875rem; color: #92400e;">${isRTL ? 'مناحل' : 'Apiaries'}</div>
+                                </div>
+                                <div style="text-align: center;">
+                                    <div style="font-size: 1.5rem; font-weight: bold; color: #78350f;">${state.hives.length}</div>
+                                    <div style="font-size: 0.875rem; color: #92400e;">${isRTL ? 'خلايا' : 'Hives'}</div>
+                                </div>
+                                <div style="text-align: center;">
+                                    <div style="font-size: 1.5rem; font-weight: bold; color: #78350f;">${state.inspections.length}</div>
+                                    <div style="font-size: 0.875rem; color: #92400e;">${isRTL ? 'فحوصات' : 'Inspections'}</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+    }
 }
 
 // Switch View
 function switchView(view) {
+    // Check authentication for protected views
+    const protectedViews = ['workspace', 'visual', 'acoustic', 'monitoring', 'honey', 'research', 'profile', 'apiaryWizard'];
+    if (protectedViews.includes(view) && !state.isAuthenticated) {
+        switchView('login');
+        return;
+    }
+    
     state.currentView = view;
     state.mobileMenuOpen = false;
     
@@ -1115,12 +1343,16 @@ function switchView(view) {
     });
     
     // Update mobile menu
-    elements.mobileMenu.classList.remove('show');
+    if (elements.mobileMenu) elements.mobileMenu.classList.remove('show');
     const t = getTranslation();
-    elements.navMobileCurrent.textContent = t.nav[view] || t.nav.home;
+    if (elements.navMobileCurrent) elements.navMobileCurrent.textContent = t.nav[view] || t.nav.home || view;
     
     // Re-render current view
-    if (view === 'home') renderHome();
+    if (view === 'login' || view === 'register') {
+        // Auth views don't need rendering
+    } else if (view === 'workspace') {
+        renderWorkspace();
+    } else if (view === 'home') renderHome();
     else if (view === 'visual') renderVisual();
     else if (view === 'acoustic') renderAcoustic();
     else if (view === 'monitoring') renderMonitoring();
@@ -1218,7 +1450,9 @@ async function analyzeHive(imageData) {
             status,
             fullAnalysis: analysisText,
             timestamp: new Date().toLocaleString(state.language === 'ar' ? 'ar-EG' : 'en-US'),
-            confidence: '95-98%'
+            confidence: '95-98%',
+            hiveId: null,
+            apiaryId: null
         };
         
         // Update result display
@@ -1232,6 +1466,16 @@ async function analyzeHive(imageData) {
         // Add data sources
         const selectedSources = dataSources.slice(0, 5);
         elements.sourcesList.innerHTML = selectedSources.map(source => `<li>${source}</li>`).join('');
+        
+        // Show save inspection button if user is authenticated and has hives
+        if (state.isAuthenticated && state.hives.length > 0 && elements.saveInspectionBtn) {
+            elements.saveInspectionBtn.style.display = 'inline-block';
+            if (elements.saveInspectionBtnText) {
+                elements.saveInspectionBtnText.textContent = state.language === 'ar' ? 'حفظ كفحص' : 'Save as Inspection';
+            }
+        } else if (elements.saveInspectionBtn) {
+            elements.saveInspectionBtn.style.display = 'none';
+        }
         
     } catch (error) {
         state.analysisResult = {
@@ -1284,11 +1528,66 @@ async function analyzeAudio() {
     }, 2000);
 }
 
+// Save Analysis as Inspection
+function saveAnalysisAsInspection() {
+    if (!state.isAuthenticated || !state.analysisResult || state.hives.length === 0) {
+        alert(state.language === 'ar' ? 'يرجى تحديد خلية أولاً' : 'Please select a hive first');
+        return;
+    }
+    
+    // Show hive selection dialog
+    const hiveOptions = state.hives.map(h => {
+        const apiary = state.apiaries.find(a => a.id === h.apiaryId);
+        return `<option value="${h.id}" data-apiary="${h.apiaryId}">${h.name}${apiary ? ` (${apiary.name})` : ''}</option>`;
+    }).join('');
+    
+    const hiveId = prompt(state.language === 'ar' 
+        ? `اختر خلية:\n${state.hives.map((h, i) => `${i + 1}. ${h.name}`).join('\n')}\n\nأدخل رقم الخلية:`
+        : `Select a hive:\n${state.hives.map((h, i) => `${i + 1}. ${h.name}`).join('\n')}\n\nEnter hive number:`);
+    
+    if (!hiveId) return;
+    
+    const selectedIndex = parseInt(hiveId) - 1;
+    if (selectedIndex < 0 || selectedIndex >= state.hives.length) {
+        alert(state.language === 'ar' ? 'رقم غير صحيح' : 'Invalid number');
+        return;
+    }
+    
+    const selectedHive = state.hives[selectedIndex];
+    
+    // Create inspection from analysis result
+    const inspection = {
+        id: 'inspection_' + Date.now(),
+        userId: state.currentUser.id,
+        hiveId: selectedHive.id,
+        apiaryId: selectedHive.apiaryId,
+        date: new Date().toISOString(),
+        status: state.analysisResult.status,
+        notes: state.analysisResult.fullAnalysis,
+        analysisType: 'visual',
+        confidence: state.analysisResult.confidence,
+        createdAt: new Date().toISOString()
+    };
+    
+    state.inspections.push(inspection);
+    saveData();
+    
+    alert(state.language === 'ar' 
+        ? `تم حفظ التحليل كفحص لـ ${selectedHive.name}`
+        : `Analysis saved as inspection for ${selectedHive.name}`);
+    
+    // Refresh workspace if visible
+    if (state.currentView === 'workspace') {
+        renderWorkspace();
+    }
+}
+
 // New Analysis
 function newAnalysis() {
     state.uploadedImage = null;
     state.analysisResult = null;
     elements.imageUpload.value = '';
+    if (elements.saveInspectionBtn) elements.saveInspectionBtn.style.display = 'none';
     renderVisual();
 }
 
@@ -1359,6 +1658,11 @@ elements.cancelBtn.addEventListener('click', newAnalysis);
 // New analysis button
 elements.newAnalysisBtn.addEventListener('click', newAnalysis);
 
+// Save inspection button
+if (elements.saveInspectionBtn) {
+    elements.saveInspectionBtn.addEventListener('click', saveAnalysisAsInspection);
+}
+
 // Audio analysis buttons
 if (elements.analyzeAudioBtn) {
     elements.analyzeAudioBtn.addEventListener('click', analyzeAudio);
@@ -1424,6 +1728,7 @@ function initializeDummyData() {
     
     const apiary2 = {
         id: 'apiary_002',
+        userId: state.currentUser ? state.currentUser.id : null,
         name: 'Delta Apiary',
         color: '#10b981',
         hasRoof: false,
@@ -1460,6 +1765,7 @@ function initializeDummyData() {
     
     const apiary3 = {
         id: 'apiary_003',
+        userId: state.currentUser ? state.currentUser.id : null,
         name: 'Desert Oasis Apiary',
         color: '#3b82f6',
         hasRoof: true,
@@ -1574,6 +1880,7 @@ function initializeDummyData() {
             
             inspections.push({
                 id: `inspection_${String(inspectionId).padStart(3, '0')}`,
+                userId: state.currentUser ? state.currentUser.id : null,
                 hiveId: hive.id,
                 apiaryId: hive.apiaryId,
                 date: inspectionDate.toISOString(),
@@ -1622,12 +1929,137 @@ function initializeDummyData() {
     saveData();
 }
 
+// Authentication Functions
+function registerUser(name, email, password) {
+    const users = JSON.parse(localStorage.getItem('users') || '{}');
+    const userId = 'user_' + Date.now();
+    
+    if (users[email]) {
+        return { success: false, message: 'Email already registered' };
+    }
+    
+    users[email] = {
+        id: userId,
+        name: name,
+        email: email,
+        password: password, // In production, hash this
+        createdAt: new Date().toISOString()
+    };
+    
+    localStorage.setItem('users', JSON.stringify(users));
+    
+    // Auto-login after registration
+    loginUser(email, password);
+    
+    return { success: true, userId: userId };
+}
+
+function loginUser(email, password) {
+    const users = JSON.parse(localStorage.getItem('users') || '{}');
+    const user = users[email];
+    
+    if (!user || user.password !== password) {
+        return { success: false, message: 'Invalid email or password' };
+    }
+    
+    state.currentUser = {
+        id: user.id,
+        name: user.name,
+        email: user.email
+    };
+    state.isAuthenticated = true;
+    
+    localStorage.setItem('currentUser', JSON.stringify(state.currentUser));
+    
+    // Load user's data
+    loadData();
+    
+    // Update UI
+    updateAuthUI();
+    
+    return { success: true, user: state.currentUser };
+}
+
+function logoutUser() {
+    state.currentUser = null;
+    state.isAuthenticated = false;
+    state.apiaries = [];
+    state.hives = [];
+    state.inspections = [];
+    state.collaborationGroups = [];
+    
+    localStorage.removeItem('currentUser');
+    
+    updateAuthUI();
+    switchView('login');
+}
+
+function checkAuth() {
+    const savedUser = localStorage.getItem('currentUser');
+    if (savedUser) {
+        try {
+            state.currentUser = JSON.parse(savedUser);
+            state.isAuthenticated = true;
+            loadData();
+            updateAuthUI();
+            return true;
+        } catch (e) {
+            console.error('Failed to load user session:', e);
+        }
+    }
+    return false;
+}
+
+function updateAuthUI() {
+    if (state.isAuthenticated && state.currentUser) {
+        // Show authenticated UI
+        if (elements.userInfo) elements.userInfo.style.display = 'flex';
+        if (elements.userName) elements.userName.textContent = state.currentUser.name;
+        if (elements.createMenuWrapper) elements.createMenuWrapper.style.display = 'block';
+        if (elements.navWorkspace) elements.navWorkspace.style.display = 'inline-block';
+        if (elements.mobileWorkspace) elements.mobileWorkspace.style.display = 'block';
+        
+        // Hide login/register views
+        if (elements.viewLogin) elements.viewLogin.classList.add('hidden');
+        if (elements.viewRegister) elements.viewRegister.classList.add('hidden');
+        
+        // Show home view if it was hidden
+        if (elements.viewHome) elements.viewHome.classList.remove('hidden');
+    } else {
+        // Show unauthenticated UI
+        if (elements.userInfo) elements.userInfo.style.display = 'none';
+        if (elements.createMenuWrapper) elements.createMenuWrapper.style.display = 'none';
+        if (elements.navWorkspace) elements.navWorkspace.style.display = 'none';
+        if (elements.mobileWorkspace) elements.mobileWorkspace.style.display = 'none';
+        
+        // Show login view, hide other views
+        if (elements.viewLogin) elements.viewLogin.classList.remove('hidden');
+        if (elements.viewRegister) elements.viewRegister.classList.add('hidden');
+        if (elements.viewHome) elements.viewHome.classList.add('hidden');
+        if (elements.viewWorkspace) elements.viewWorkspace.classList.add('hidden');
+    }
+}
+
+// Get user-specific storage key
+function getUserStorageKey(key) {
+    if (!state.currentUser) return key;
+    return `${key}_${state.currentUser.id}`;
+}
+
 // Load data from localStorage
 function loadData() {
-    const savedApiaries = localStorage.getItem('apiaries');
-    const savedHives = localStorage.getItem('hives');
-    const savedInspections = localStorage.getItem('inspections');
-    const savedGroups = localStorage.getItem('collaborationGroups');
+    if (!state.currentUser) {
+        state.apiaries = [];
+        state.hives = [];
+        state.inspections = [];
+        state.collaborationGroups = [];
+        return;
+    }
+    
+    const savedApiaries = localStorage.getItem(getUserStorageKey('apiaries'));
+    const savedHives = localStorage.getItem(getUserStorageKey('hives'));
+    const savedInspections = localStorage.getItem(getUserStorageKey('inspections'));
+    const savedGroups = localStorage.getItem(getUserStorageKey('collaborationGroups'));
     
     // Check if any data exists
     const hasData = savedApiaries || savedHives || savedInspections || savedGroups;
@@ -1646,10 +2078,12 @@ function loadData() {
 
 // Save data to localStorage
 function saveData() {
-    localStorage.setItem('apiaries', JSON.stringify(state.apiaries));
-    localStorage.setItem('hives', JSON.stringify(state.hives));
-    localStorage.setItem('inspections', JSON.stringify(state.inspections));
-    localStorage.setItem('collaborationGroups', JSON.stringify(state.collaborationGroups));
+    if (!state.currentUser) return;
+    
+    localStorage.setItem(getUserStorageKey('apiaries'), JSON.stringify(state.apiaries));
+    localStorage.setItem(getUserStorageKey('hives'), JSON.stringify(state.hives));
+    localStorage.setItem(getUserStorageKey('inspections'), JSON.stringify(state.inspections));
+    localStorage.setItem(getUserStorageKey('collaborationGroups'), JSON.stringify(state.collaborationGroups));
 }
 
 // Toggle Create Menu
@@ -2104,6 +2538,7 @@ function saveApiary() {
     // Create apiary
     const apiary = {
         id: Date.now().toString(),
+        userId: state.currentUser ? state.currentUser.id : null,
         name: data.apiary.name,
         color: data.apiary.color,
         hasRoof: data.apiary.hasRoof,
@@ -2146,6 +2581,7 @@ function saveApiary() {
     for (let i = 0; i < data.numberOfHives.count; i++) {
         hives.push({
             id: Date.now().toString() + '_hive_' + i,
+            userId: state.currentUser ? state.currentUser.id : null,
             apiaryId: apiary.id,
             name: `${data.numberOfHives.prefix} ${data.numberOfHives.startNumber + i}`,
             configTemplateId: hiveConfigTemplate.id,
@@ -2406,7 +2842,72 @@ updateUI = function() {
     }
 };
 
+// Event Listeners for Auth
+if (elements.loginForm) {
+    elements.loginForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const email = document.getElementById('loginEmail').value;
+        const password = document.getElementById('loginPassword').value;
+        const result = loginUser(email, password);
+        if (result.success) {
+            switchView('workspace');
+        } else {
+            alert(result.message || 'Login failed');
+        }
+    });
+}
+
+if (elements.registerForm) {
+    elements.registerForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const name = document.getElementById('registerName').value;
+        const email = document.getElementById('registerEmail').value;
+        const password = document.getElementById('registerPassword').value;
+        const confirmPassword = document.getElementById('registerConfirmPassword').value;
+        
+        if (password !== confirmPassword) {
+            alert('Passwords do not match');
+            return;
+        }
+        
+        if (password.length < 6) {
+            alert('Password must be at least 6 characters');
+            return;
+        }
+        
+        const result = registerUser(name, email, password);
+        if (result.success) {
+            switchView('workspace');
+        } else {
+            alert(result.message || 'Registration failed');
+        }
+    });
+}
+
+if (elements.showRegisterLink) {
+    elements.showRegisterLink.addEventListener('click', (e) => {
+        e.preventDefault();
+        switchView('register');
+    });
+}
+
+if (elements.showLoginLink) {
+    elements.showLoginLink.addEventListener('click', (e) => {
+        e.preventDefault();
+        switchView('login');
+    });
+}
+
+if (elements.logoutBtn) {
+    elements.logoutBtn.addEventListener('click', () => {
+        logoutUser();
+    });
+}
+
 // Initialize
-loadData();
-updateUI();
-switchView('home');
+if (!checkAuth()) {
+    switchView('login');
+} else {
+    updateUI();
+    switchView('workspace');
+}
