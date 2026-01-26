@@ -92,6 +92,7 @@ const translations = {
             description: "The most comprehensive, scientifically-validated platform supporting the entire beekeeping and honey production ecosystem. Serving beekeepers, researchers, academics, policymakers, and extension agents with 12 core service categories.",
             userTypes: "Services by User Type",
             dataSources: "Integrated Data Sources",
+            dashboard: "Your Apiaries",
             cta: "Get Started with Visual Analysis"
         },
         userTypes: {
@@ -536,6 +537,8 @@ const elements = {
     featuresGrid: document.getElementById('featuresGrid'),
     dataSourcesTitle: document.getElementById('dataSourcesTitle'),
     sourcesGrid: document.getElementById('sourcesGrid'),
+    dashboardTitle: document.getElementById('dashboardTitle'),
+    dashboardGrid: document.getElementById('dashboardGrid'),
     homeCtaBtn: document.getElementById('homeCtaBtn'),
     homeCtaText: document.getElementById('homeCtaText'),
     
@@ -737,6 +740,7 @@ function renderHome() {
     elements.homeDescription.textContent = t.home.description;
     elements.userTypesTitle.textContent = t.home.userTypes;
     elements.dataSourcesTitle.textContent = t.home.dataSources;
+    if (elements.dashboardTitle) elements.dashboardTitle.textContent = t.home.dashboard;
     elements.homeCtaText.textContent = t.home.cta;
     
     // Render user types
@@ -782,6 +786,159 @@ function renderHome() {
     elements.sourcesGrid.innerHTML = dataSources.map(source => `
         <div class="source-badge">${source}</div>
     `).join('');
+    
+    // Render dashboard with apiaries data
+    renderDashboard();
+}
+
+// Render Dashboard
+function renderDashboard() {
+    const t = getTranslation();
+    const isRTL = state.language === 'ar';
+    
+    if (!elements.dashboardGrid) return;
+    
+    if (state.apiaries.length === 0) {
+        elements.dashboardGrid.innerHTML = `
+            <div class="dashboard-empty">
+                <p>${isRTL ? 'لا توجد مناحل. قم بإنشاء منحل جديد للبدء.' : 'No apiaries yet. Create a new apiary to get started.'}</p>
+            </div>
+        `;
+        return;
+    }
+    
+    elements.dashboardGrid.innerHTML = state.apiaries.map(apiary => {
+        const apiaryHives = state.hives.filter(h => h.apiaryId === apiary.id);
+        const apiaryInspections = state.inspections.filter(i => i.apiaryId === apiary.id);
+        const recentInspections = apiaryInspections
+            .sort((a, b) => new Date(b.date) - new Date(a.date))
+            .slice(0, 3);
+        
+        const location = apiary.location ? 
+            `${apiary.location.city || ''}${apiary.location.city && apiary.location.country ? ', ' : ''}${apiary.location.country === 'EG' ? 'Egypt' : apiary.location.country || ''}`.trim() || 
+            (isRTL ? 'موقع غير محدد' : 'Location not specified') :
+            (isRTL ? 'موقع غير محدد' : 'Location not specified');
+        
+        return `
+            <div class="dashboard-card">
+                <div class="dashboard-card-header" style="border-left: 4px solid ${apiary.color}">
+                    <h3 class="dashboard-card-title">${apiary.name}</h3>
+                    <div class="dashboard-card-meta">
+                        <span class="dashboard-location">📍 ${location}</span>
+                        ${apiary.hasRoof ? `<span class="dashboard-badge">${isRTL ? 'سقف' : 'Roofed'}</span>` : ''}
+                    </div>
+                </div>
+                <div class="dashboard-card-stats">
+                    <div class="stat-item">
+                        <span class="stat-value">${apiaryHives.length}</span>
+                        <span class="stat-label">${isRTL ? 'خلايا' : 'Hives'}</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-value">${apiaryInspections.length}</span>
+                        <span class="stat-label">${isRTL ? 'فحوصات' : 'Inspections'}</span>
+                    </div>
+                </div>
+                ${recentInspections.length > 0 ? `
+                    <div class="dashboard-recent">
+                        <h4 class="dashboard-recent-title">${isRTL ? 'الفحوصات الأخيرة' : 'Recent Inspections'}</h4>
+                        <ul class="dashboard-inspections-list">
+                            ${recentInspections.map(inspection => {
+                                const hive = state.hives.find(h => h.id === inspection.hiveId);
+                                const statusClass = inspection.status.toLowerCase();
+                                const date = new Date(inspection.date);
+                                const dateStr = date.toLocaleDateString(isRTL ? 'ar-EG' : 'en-US', { 
+                                    month: 'short', 
+                                    day: 'numeric' 
+                                });
+                                return `
+                                    <li class="dashboard-inspection-item ${statusClass}">
+                                        <span class="inspection-hive">${hive ? hive.name : 'Unknown'}</span>
+                                        <span class="inspection-status ${statusClass}">${inspection.status}</span>
+                                        <span class="inspection-date">${dateStr}</span>
+                                    </li>
+                                `;
+                            }).join('')}
+                        </ul>
+                    </div>
+                ` : ''}
+            </div>
+        `;
+    }).join('');
+}
+
+// Render Dashboard
+function renderDashboard() {
+    const t = getTranslation();
+    const isRTL = state.language === 'ar';
+    
+    if (!elements.dashboardGrid) return;
+    
+    if (state.apiaries.length === 0) {
+        elements.dashboardGrid.innerHTML = `
+            <div class="dashboard-empty">
+                <p>${isRTL ? 'لا توجد مناحل. قم بإنشاء منحل جديد للبدء.' : 'No apiaries yet. Create a new apiary to get started.'}</p>
+            </div>
+        `;
+        return;
+    }
+    
+    elements.dashboardGrid.innerHTML = state.apiaries.map(apiary => {
+        const apiaryHives = state.hives.filter(h => h.apiaryId === apiary.id);
+        const apiaryInspections = state.inspections.filter(i => i.apiaryId === apiary.id);
+        const recentInspections = apiaryInspections
+            .sort((a, b) => new Date(b.date) - new Date(a.date))
+            .slice(0, 3);
+        
+        const location = apiary.location ? 
+            `${apiary.location.city || ''}${apiary.location.city && apiary.location.country ? ', ' : ''}${apiary.location.country === 'EG' ? 'Egypt' : apiary.location.country || ''}`.trim() || 
+            (isRTL ? 'موقع غير محدد' : 'Location not specified') :
+            (isRTL ? 'موقع غير محدد' : 'Location not specified');
+        
+        return `
+            <div class="dashboard-card">
+                <div class="dashboard-card-header" style="border-left: 4px solid ${apiary.color}">
+                    <h3 class="dashboard-card-title">${apiary.name}</h3>
+                    <div class="dashboard-card-meta">
+                        <span class="dashboard-location">📍 ${location}</span>
+                        ${apiary.hasRoof ? `<span class="dashboard-badge">${isRTL ? 'سقف' : 'Roofed'}</span>` : ''}
+                    </div>
+                </div>
+                <div class="dashboard-card-stats">
+                    <div class="stat-item">
+                        <span class="stat-value">${apiaryHives.length}</span>
+                        <span class="stat-label">${isRTL ? 'خلايا' : 'Hives'}</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-value">${apiaryInspections.length}</span>
+                        <span class="stat-label">${isRTL ? 'فحوصات' : 'Inspections'}</span>
+                    </div>
+                </div>
+                ${recentInspections.length > 0 ? `
+                    <div class="dashboard-recent">
+                        <h4 class="dashboard-recent-title">${isRTL ? 'الفحوصات الأخيرة' : 'Recent Inspections'}</h4>
+                        <ul class="dashboard-inspections-list">
+                            ${recentInspections.map(inspection => {
+                                const hive = state.hives.find(h => h.id === inspection.hiveId);
+                                const statusClass = inspection.status.toLowerCase();
+                                const date = new Date(inspection.date);
+                                const dateStr = date.toLocaleDateString(isRTL ? 'ar-EG' : 'en-US', { 
+                                    month: 'short', 
+                                    day: 'numeric' 
+                                });
+                                return `
+                                    <li class="dashboard-inspection-item ${statusClass}">
+                                        <span class="inspection-hive">${hive ? hive.name : 'Unknown'}</span>
+                                        <span class="inspection-status ${statusClass}">${inspection.status}</span>
+                                        <span class="inspection-date">${dateStr}</span>
+                                    </li>
+                                `;
+                            }).join('')}
+                        </ul>
+                    </div>
+                ` : ''}
+            </div>
+        `;
+    }).join('');
 }
 
 // Render Visual Analysis View
@@ -1224,6 +1381,247 @@ elements.saveProfileBtn.addEventListener('click', () => {
     alert(t.profile.save + ' - ' + (state.language === 'ar' ? 'تم الحفظ' : 'Saved'));
 });
 
+// Initialize Dummy Data
+function initializeDummyData() {
+    const now = new Date();
+    
+    // Create 3 apiaries
+    const apiary1 = {
+        id: 'apiary_001',
+        name: 'North Farm Apiary',
+        color: '#f59e0b',
+        hasRoof: true,
+        createdAt: new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000).toISOString(), // 90 days ago
+        location: {
+            id: 'loc_001',
+            apiaryId: 'apiary_001',
+            address: 'Agricultural Road, Shubra El Kheima',
+            country: 'EG',
+            city: 'Qalyubia',
+            street: 'Agricultural Road',
+            number: '45',
+            postalCode: '13411',
+            latitude: 30.1286,
+            longitude: 31.2422,
+            precision: 'precise'
+        },
+        hiveConfigTemplate: {
+            id: 'config_001',
+            apiaryId: 'apiary_001',
+            color: '#f59e0b',
+            framesPerLayer: 10,
+            hiveType: 'langstroth',
+            layers: ['brood', 'honey', 'queen-excluder', 'feeding-box'],
+            dimensions: {
+                broodWidth: 50.8,
+                broodHeight: 24.4,
+                broodDepth: 42.0,
+                frameWidth: 48.3,
+                frameHeight: 23.2
+            }
+        }
+    };
+    
+    const apiary2 = {
+        id: 'apiary_002',
+        name: 'Delta Apiary',
+        color: '#10b981',
+        hasRoof: false,
+        createdAt: new Date(now.getTime() - 60 * 24 * 60 * 60 * 1000).toISOString(), // 60 days ago
+        location: {
+            id: 'loc_002',
+            apiaryId: 'apiary_002',
+            address: 'Nile Delta Region, Mansoura',
+            country: 'EG',
+            city: 'Dakahlia',
+            street: 'Nile Corniche',
+            number: '12',
+            postalCode: '35511',
+            latitude: 31.0409,
+            longitude: 31.3785,
+            precision: 'precise'
+        },
+        hiveConfigTemplate: {
+            id: 'config_002',
+            apiaryId: 'apiary_002',
+            color: '#10b981',
+            framesPerLayer: 8,
+            hiveType: 'top-bar',
+            layers: ['brood', 'honey'],
+            dimensions: {
+                broodWidth: 45.0,
+                broodHeight: 20.0,
+                broodDepth: 40.0,
+                frameWidth: 43.0,
+                frameHeight: 19.0
+            }
+        }
+    };
+    
+    const apiary3 = {
+        id: 'apiary_003',
+        name: 'Desert Oasis Apiary',
+        color: '#3b82f6',
+        hasRoof: true,
+        createdAt: new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000).toISOString(), // 30 days ago
+        location: {
+            id: 'loc_003',
+            apiaryId: 'apiary_003',
+            address: 'Fayoum Oasis, Agricultural Zone',
+            country: 'EG',
+            city: 'Fayoum',
+            street: 'Oasis Road',
+            number: '8',
+            postalCode: '63511',
+            latitude: 29.3084,
+            longitude: 30.8448,
+            precision: 'precise'
+        },
+        hiveConfigTemplate: {
+            id: 'config_003',
+            apiaryId: 'apiary_003',
+            color: '#3b82f6',
+            framesPerLayer: 10,
+            hiveType: 'national',
+            layers: ['brood', 'honey', 'queen-excluder'],
+            dimensions: {
+                broodWidth: 46.0,
+                broodHeight: 22.0,
+                broodDepth: 41.0,
+                frameWidth: 44.0,
+                frameHeight: 21.0
+            }
+        }
+    };
+    
+    state.apiaries = [apiary1, apiary2, apiary3];
+    
+    // Create hives for each apiary
+    const hives = [];
+    
+    // Apiary 1: 4 hives
+    for (let i = 1; i <= 4; i++) {
+        hives.push({
+            id: `hive_00${i}`,
+            apiaryId: 'apiary_001',
+            name: `Hive ${i}`,
+            configTemplateId: 'config_001',
+            createdAt: new Date(now.getTime() - (90 - i * 5) * 24 * 60 * 60 * 1000).toISOString()
+        });
+    }
+    
+    // Apiary 2: 3 hives
+    for (let i = 1; i <= 3; i++) {
+        hives.push({
+            id: `hive_00${i + 4}`,
+            apiaryId: 'apiary_002',
+            name: `Hive ${i}`,
+            configTemplateId: 'config_002',
+            createdAt: new Date(now.getTime() - (60 - i * 7) * 24 * 60 * 60 * 1000).toISOString()
+        });
+    }
+    
+    // Apiary 3: 5 hives
+    for (let i = 1; i <= 5; i++) {
+        hives.push({
+            id: `hive_00${i + 7}`,
+            apiaryId: 'apiary_003',
+            name: `Hive ${i}`,
+            configTemplateId: 'config_003',
+            createdAt: new Date(now.getTime() - (30 - i * 3) * 24 * 60 * 60 * 1000).toISOString()
+        });
+    }
+    
+    state.hives = hives;
+    
+    // Create inspections with various statuses
+    const inspections = [];
+    const statuses = ['Healthy', 'Monitor', 'Concern', 'Healthy', 'Monitor'];
+    const inspectionNotes = [
+        'Brood pattern looks good, queen present and laying well. No signs of pests.',
+        'Some uncapped brood cells observed. Monitor for potential disease. Queen activity normal.',
+        'Varroa mite presence detected on several frames. Treatment recommended.',
+        'Excellent brood coverage, strong colony. Honey stores adequate.',
+        'Reduced brood pattern, possible queen issues. Recommend requeening.',
+        'Healthy colony with good population. Spring buildup progressing well.',
+        'Wax moth damage on outer frames. Remove and replace affected comb.',
+        'Strong queen, good laying pattern. Colony preparing for swarming season.',
+        'Nosema spores detected in sample. Consider treatment with fumagillin.',
+        'Colony appears healthy but needs more space. Add super soon.',
+        'Brood pattern irregular, check for queen. Colony may be queenless.',
+        'Excellent honey production. Colony very strong and productive.',
+        'Some dead bees at entrance. Monitor for potential pesticide exposure.',
+        'Queen cells observed. Colony may be preparing to swarm.',
+        'Healthy colony with good temperament. No issues detected.',
+        'American foulbrood suspected. Isolate hive immediately and contact extension agent.',
+        'Good brood pattern, strong population. Weather conditions favorable.',
+        'Colony showing signs of stress. Check food stores and water access.',
+        'Queen laying well, brood pattern solid. Colony thriving.',
+        'Minor pest issues detected. Monitor and treat if necessary.'
+    ];
+    
+    // Create 18 inspections spread over the past 2-3 months
+    let inspectionId = 1;
+    hives.forEach((hive, hiveIndex) => {
+        // Each hive gets 1-2 inspections
+        const numInspections = hiveIndex % 3 === 0 ? 2 : 1;
+        
+        for (let i = 0; i < numInspections; i++) {
+            const daysAgo = Math.floor(Math.random() * 60) + (i * 20); // Spread over 60 days
+            const inspectionDate = new Date(now.getTime() - daysAgo * 24 * 60 * 60 * 1000);
+            const statusIndex = Math.floor(Math.random() * statuses.length);
+            const noteIndex = (inspectionId - 1) % inspectionNotes.length;
+            
+            inspections.push({
+                id: `inspection_${String(inspectionId).padStart(3, '0')}`,
+                hiveId: hive.id,
+                apiaryId: hive.apiaryId,
+                date: inspectionDate.toISOString(),
+                status: statuses[statusIndex],
+                notes: inspectionNotes[noteIndex],
+                analysisType: Math.random() > 0.5 ? 'visual' : 'acoustic',
+                confidence: statusIndex === 0 ? '95-98%' : statusIndex === 1 ? '92-95%' : '85-90%',
+                createdAt: inspectionDate.toISOString()
+            });
+            
+            inspectionId++;
+        }
+    });
+    
+    state.inspections = inspections;
+    
+    // Create collaboration groups
+    state.collaborationGroups = [
+        {
+            id: 'group_001',
+            name: 'Cairo Beekeepers Network',
+            description: 'A collaborative group for beekeepers in the Greater Cairo region',
+            memberCount: 45,
+            focusArea: 'Urban beekeeping, pest management, honey production',
+            createdAt: new Date(now.getTime() - 120 * 24 * 60 * 60 * 1000).toISOString()
+        },
+        {
+            id: 'group_002',
+            name: 'Delta Honey Producers',
+            description: 'Cooperative for honey producers in the Nile Delta region',
+            memberCount: 32,
+            focusArea: 'Commercial production, quality control, market access',
+            createdAt: new Date(now.getTime() - 100 * 24 * 60 * 60 * 1000).toISOString()
+        },
+        {
+            id: 'group_003',
+            name: 'Desert Oasis Beekeepers',
+            description: 'Community of beekeepers working in desert and oasis environments',
+            memberCount: 18,
+            focusArea: 'Desert adaptation, water management, seasonal practices',
+            createdAt: new Date(now.getTime() - 80 * 24 * 60 * 60 * 1000).toISOString()
+        }
+    ];
+    
+    // Save to localStorage
+    saveData();
+}
+
 // Load data from localStorage
 function loadData() {
     const savedApiaries = localStorage.getItem('apiaries');
@@ -1231,10 +1629,19 @@ function loadData() {
     const savedInspections = localStorage.getItem('inspections');
     const savedGroups = localStorage.getItem('collaborationGroups');
     
-    if (savedApiaries) state.apiaries = JSON.parse(savedApiaries);
-    if (savedHives) state.hives = JSON.parse(savedHives);
-    if (savedInspections) state.inspections = JSON.parse(savedInspections);
-    if (savedGroups) state.collaborationGroups = JSON.parse(savedGroups);
+    // Check if any data exists
+    const hasData = savedApiaries || savedHives || savedInspections || savedGroups;
+    
+    // If no data exists, initialize dummy data
+    if (!hasData) {
+        initializeDummyData();
+    } else {
+        // Load existing data
+        if (savedApiaries) state.apiaries = JSON.parse(savedApiaries);
+        if (savedHives) state.hives = JSON.parse(savedHives);
+        if (savedInspections) state.inspections = JSON.parse(savedInspections);
+        if (savedGroups) state.collaborationGroups = JSON.parse(savedGroups);
+    }
 }
 
 // Save data to localStorage
